@@ -10,20 +10,31 @@ const toSubcategoryUi = (subcategory) => ({
   ...subcategory,
   image: subcategory.image ?? '',
   status: (subcategory.isActive ?? (subcategory.status === 'active')) ? 'active' : 'inactive',
-  categoryName: subcategory.categoryName ?? subcategory.category?.name ?? '',
+  categoryId: subcategory.categoryId ?? subcategory.categoryIds?.[0] ?? subcategory.category?.id ?? subcategory.categories?.[0]?.id ?? '',
+  categoryIds: subcategory.categoryIds ?? (subcategory.categoryId ? [subcategory.categoryId] : []),
+  categoryName: subcategory.categoryName ?? subcategory.category?.name ?? subcategory.categories?.[0]?.name ?? '',
   description: subcategory.description ?? '',
   sortOrder: subcategory.sortOrder ?? 0,
   productCount: subcategory.productCount ?? 0,
 })
 
-// Exact payload accepted by the current backend.
-const toSubcategoryPayload = (data) => ({
-  categoryId: Number(data.categoryId),
-  name: data.name,
-  slug: data.slug,
-  image: data.image ?? '',
-  isActive: data.isActive ?? data.status === 'active',
-})
+// Exact multipart payload accepted by the backend:
+// categoryIds, name, slug, image, description, isActive.
+const toSubcategoryPayload = (data) => {
+  const payload = new FormData()
+  const categoryIds = data.categoryIds?.length
+    ? data.categoryIds.map(Number)
+    : [Number(data.categoryId)]
+
+  payload.append('categoryIds', JSON.stringify(categoryIds))
+  payload.append('name', data.name.trim())
+  payload.append('slug', data.slug.trim())
+  payload.append('description', data.description?.trim() ?? '')
+  payload.append('isActive', String(data.isActive ?? data.status === 'active'))
+  if (data.image instanceof File) payload.append('image', data.image)
+
+  return payload
+}
 
 export async function getSubcategories(params = {}) {
   const response = await api.get('/admin/subcategories', { params })

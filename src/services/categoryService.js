@@ -11,20 +11,31 @@ const unwrap = (response) => response.data?.data ?? response.data
 const toCategoryUi = (category) => ({
   ...category,
   image: category.image ?? category.imageUrl ?? '',
+  banner: category.banner ?? category.bannerUrl ?? '',
   status: (category.isActive ?? (category.status === 'active')) ? 'active' : 'inactive',
   description: category.description ?? '',
-  sortOrder: category.sortOrder ?? 0,
+  order: category.order ?? category.sortOrder ?? 0,
+  sortOrder: category.order ?? category.sortOrder ?? 0,
   productCount: category.productCount ?? 0,
   subcategoryCount: category.subcategoryCount ?? 0,
 })
 
-// Exact payload accepted by the current backend: name, slug, image, isActive.
-const toCategoryPayload = (data) => ({
-  name: data.name,
-  slug: data.slug,
-  image: data.image ?? data.imageUrl ?? '',
-  isActive: data.isActive ?? data.status === 'active',
-})
+// Exact multipart payload accepted by the backend:
+// name, slug, isActive, image, banner, order, description.
+// Do not set Content-Type manually; Axios adds the multipart boundary.
+const toCategoryPayload = (data) => {
+  const payload = new FormData()
+  payload.append('name', data.name.trim())
+  payload.append('slug', data.slug.trim())
+  payload.append('isActive', (data.isActive ?? data.status === 'active') ? '1' : '0')
+  payload.append('order', String(Number(data.order ?? data.sortOrder ?? 0)))
+  payload.append('description', data.description?.trim() ?? '')
+
+  if (data.image instanceof File) payload.append('image', data.image)
+  if (data.banner instanceof File) payload.append('banner', data.banner)
+
+  return payload
+}
 
 export async function getCategories(params = {}) {
   const response = await api.get('/admin/categories', { params })
