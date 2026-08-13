@@ -1,0 +1,7 @@
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { deleteBrand, getBrand } from '../../services/brandService'
+import './brands.css'
+export default function BrandView() { const { id } = useParams(); const nav = useNavigate(); const [brand, setBrand] = useState(null); useEffect(() => { getBrand(id).then(setBrand) }, [id]); if (!brand) return <AdminLayout title="Brand details"><div className="brand-empty">Loading brand...</div></AdminLayout>; return <AdminLayout title="Brand details"><div className="brand-page"><button className="brand-back" onClick={() => nav('/brands')}><ArrowLeft size={16} />Back to Brands</button><div className="brand-heading"><div><h2>{brand.name}</h2><span>{brand.slug}</span></div><div className="brand-view-actions"><Link to={`/brands/${brand.id}/edit`}><Pencil size={16} />Edit Brand</Link><button onClick={async () => { if (window.confirm('Delete this brand?')) { await deleteBrand(brand.id); nav('/brands') } }}><Trash2 size={16} />Delete</button></div></div><section className="brand-detail">{brand.logoUrl ? <img src={brand.logoUrl} alt="" /> : <div className="brand-preview-logo">{brand.name?.[0]}</div>}<div><span className={`brand-status ${brand.status}`}>{brand.status}</span><p>{brand.description || 'No description provided.'}</p><div><small>Slug</small><strong>{brand.slug}</strong></div></div></section></div></AdminLayout> }

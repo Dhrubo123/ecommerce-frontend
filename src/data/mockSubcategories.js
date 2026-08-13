@@ -1,0 +1,7 @@
+const mockSubcategories = [
+  { id: 1, categoryId: 1, categoryName: 'Electronics', name: 'Mobile Phones', slug: 'mobile-phones', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=200&q=80', description: 'Smartphones, feature phones and mobile accessories.', sortOrder: 1, productCount: 24, status: 'active', createdAt: '2026-08-10', updatedAt: '2026-08-10' },
+  { id: 2, categoryId: 1, categoryName: 'Electronics', name: 'Laptops', slug: 'laptops', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=200&q=80', description: 'Laptops, notebooks and computer accessories.', sortOrder: 2, productCount: 16, status: 'active', createdAt: '2026-08-09', updatedAt: '2026-08-10' },
+  { id: 3, categoryId: 2, categoryName: 'Fashion', name: 'Women Clothing', slug: 'women-clothing', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=200&q=80', description: 'Modern wardrobe staples for women.', sortOrder: 1, productCount: 31, status: 'active', createdAt: '2026-08-08', updatedAt: '2026-08-10' },
+  { id: 4, categoryId: 2, categoryName: 'Fashion', name: 'Footwear', slug: 'footwear', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=200&q=80', description: 'Everyday and performance footwear.', sortOrder: 2, productCount: 18, status: 'inactive', createdAt: '2026-08-07', updatedAt: '2026-08-09' },
+]
+export default mockSubcategories

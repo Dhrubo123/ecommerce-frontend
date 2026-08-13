@@ -1,0 +1,103 @@
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  ArrowLeftRight, BadgeDollarSign, BadgePercent, BarChart3, Bell, Boxes,
+  CalendarClock, Car, ChevronDown, ChevronLeft, ChevronRight, CircleUserRound,
+  ClipboardList, Factory, FileText, Headphones, Image, Landmark,
+  Languages, LayoutDashboard, LogOut, Mail, MapPin, Megaphone, Menu, Monitor,
+  Package, Plug, Receipt, RefreshCcw, RotateCcw, Settings, ShieldCheck,
+  ShoppingCart, SlidersHorizontal, Store, Tags, Ticket, TrendingUp, Truck,
+  Undo2, UserCog, Users, Wallet, X, Zap,
+} from 'lucide-react'
+import './Sidebar.css'
+
+const menuSections = [
+  { label: 'Main', items: [{ label: 'Dashboard', icon: LayoutDashboard }] },
+  { label: 'Order Management', items: [
+    { label: 'Orders', icon: ShoppingCart, badge: 12 }, { label: 'Courier Tracking', icon: Truck },
+    { label: 'Pre-Orders', icon: CalendarClock, children: ['Overview / Analytics', 'Pre-Order List', 'Pre-Order Products', 'Commission', 'Profit Report', 'Pre-Order Settings'] },
+    { label: 'Refunds', icon: RotateCcw, badge: 3 }, { label: 'POS', icon: Monitor, children: ['New POS Sale', 'POS Sales History', 'POS Drafts'] }, { label: 'Conversations', icon: Mail, badge: 5 },
+  ] },
+  { label: 'Catalog', items: [
+    { label: 'Products', icon: Package, children: ['All Products', 'Add Product', 'Digital Products', { label: 'Pending Product Approval', badge: 8 }, 'Product Update Requests'] },
+    { label: 'Categories', icon: Tags, children: ['All Categories', 'Add Category', 'All Subcategories', 'Add Subcategory'] },
+    { label: 'Product Attributes', icon: SlidersHorizontal, children: ['Brands', 'Colors', 'Sizes', 'Units'] },
+  ] },
+  { label: 'Inventory & Purchase', items: [
+    { label: 'Stock Report', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Invoices', 'Purchase Summary'] },
+    { label: 'Purchase Returns', icon: Undo2 }, { label: 'Suppliers', icon: Factory }, { label: 'Warehouses', icon: Boxes, children: ['All Warehouses', 'Add Warehouse', 'Warehouse Requisition List', 'Warehouse Requisitions', 'Warehouse Transfer List', 'New Warehouse Transfer'] },
+  ] },
+  { label: 'Marketplace', items: [
+    { label: 'Shops / Vendors', icon: Store, children: ['All Shops', 'Add Shop', 'Shop Approval'] }, { label: 'Commission', icon: BadgePercent },
+    { label: 'Payouts', icon: Wallet }, { label: 'Withdrawals', icon: Landmark }, { label: 'Subscriptions', icon: RefreshCcw },
+  ] },
+  { label: 'Marketing & Content', items: [
+    { label: 'Flash Deals', icon: Zap }, { label: 'Banners', icon: Image }, { label: 'Ad Campaigns', icon: Megaphone },
+    { label: 'Coupons', icon: Ticket }, { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText }, { label: 'CMS Pages', icon: FileText },
+  ] },
+  { label: 'People & Support', items: [
+    { label: 'Customers', icon: Users }, { label: 'Employees', icon: UserCog }, { label: 'Drivers', icon: Car }, { label: 'Support Tickets', icon: Headphones }, { label: 'Contact Us', icon: Mail },
+  ] },
+  { label: 'Reports', items: [
+    { label: 'Analytics', icon: BarChart3 }, { label: 'Sales Report', icon: TrendingUp }, { label: 'Order Report', icon: Receipt }, { label: 'Profit Report', icon: BadgeDollarSign },
+    { label: 'Stock Report', icon: Boxes }, { label: 'Purchase Report', icon: ClipboardList }, { label: 'Refund Report', icon: RotateCcw }, { label: 'Commission Report', icon: BadgePercent },
+  ] },
+  { label: 'System Settings', items: [
+    { label: 'Roles & Permissions', icon: ShieldCheck }, { label: 'Languages', icon: Languages }, { label: 'Address Management', icon: MapPin },
+    { label: 'Business Settings', icon: Settings }, { label: 'Third-Party Integrations', icon: Plug }, { label: 'Import / Export', icon: ArrowLeftRight }, { label: 'Add-ons', icon: Boxes },
+  ] },
+]
+
+const getItemLabel = (item) => typeof item === 'string' ? item : item.label
+const routes = { Dashboard: '/dashboard', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
+
+function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [openMenus, setOpenMenus] = useState({})
+  const [activeItem, setActiveItem] = useState('Dashboard')
+  const toggleMenu = (label) => setOpenMenus((current) => ({ ...current, [label]: !current[label] }))
+  const selectItem = (label) => { setActiveItem(label); if (routes[label]) navigate(routes[label]); onClose?.() }
+  const logout = () => {
+    localStorage.removeItem('adminAccessToken')
+    onClose?.()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <>
+      <button className={`sidebar-overlay ${isOpen ? 'is-visible' : ''}`} type="button" aria-label="Close navigation menu" onClick={onClose} />
+      <aside className={`sidebar ${isOpen ? 'is-open' : ''} ${isCollapsed ? 'is-collapsed' : ''}`} aria-label="Admin navigation">
+        <div className="sidebar-top">
+          <div className="sidebar-brand"><span className="sidebar-logo"><Store size={19} /></span><span className="brand-name">Ecommerce Admin</span><button className="mobile-close" type="button" aria-label="Close navigation" onClick={onClose}><X size={19} /></button></div>
+          <button className="collapse-button" type="button" aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={onToggleCollapse}>{isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}</button>
+        </div>
+        <nav className="sidebar-nav">
+          {menuSections.map((section) => <div className="nav-section" key={section.label}>
+            <p className="section-label">{section.label}</p>
+            <div className="nav-items">{section.items.map((item) => {
+              const Icon = item.icon
+              const isOpenMenu = openMenus[item.label]
+              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
+              return <div className="nav-item-group" key={item.label}>
+                <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={item.children ? isOpenMenu : undefined} onClick={() => item.children ? toggleMenu(item.label) : selectItem(item.label)}>
+                  <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}{item.children && <ChevronDown className={`submenu-chevron ${isOpenMenu ? 'is-open' : ''}`} size={16} />}
+                </button>
+                {item.children && <div className={`submenu ${isOpenMenu ? 'is-open' : ''}`}>
+                  <div className="submenu-inner">{item.children.map((child) => { const label = getItemLabel(child); const childActive = routes[label] ? (label.includes('Categories') ? location.pathname.startsWith('/categories') : label.includes('Subcategories') ? location.pathname.startsWith('/subcategories') : location.pathname === routes[label]) : activeItem === label; return <button className={`submenu-item ${childActive ? 'is-active' : ''}`} type="button" key={label} onClick={() => selectItem(label)}><span>{label}</span>{typeof child === 'object' && child.badge && <span className="nav-badge">{child.badge}</span>}</button> })}</div>
+                </div>}
+              </div>
+            })}</div>
+          </div>)}
+        </nav>
+        <div className="sidebar-footer">
+          <div className="admin-profile"><span className="profile-avatar">SA</span><div className="profile-info"><strong>Super Admin</strong><span>Platform owner</span></div><button type="button" className="profile-menu" aria-label="My Profile" title="My Profile"><CircleUserRound size={18} /></button></div>
+          <div className="profile-actions"><button type="button"><CircleUserRound size={16} /><span>My Profile</span></button><button type="button" className="logout-button" onClick={logout}><LogOut size={16} /><span>Logout</span></button></div>
+        </div>
+      </aside>
+    </>
+  )
+}
+
+export function MobileMenuButton({ onClick }) { return <button className="mobile-menu-button" type="button" onClick={onClick} aria-label="Open navigation menu"><Menu size={21} /></button> }
+export default Sidebar

@@ -1,0 +1,7 @@
+const mockCategories = [
+  { id: 1, name: 'Electronics', slug: 'electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=200&q=80', description: 'Mobile phones, laptops, accessories and smart devices.', sortOrder: 1, productCount: 48, subcategoryCount: 2, status: 'active', isFeatured: true, createdAt: '2026-08-10', updatedAt: '2026-08-10' },
+  { id: 2, name: 'Fashion', slug: 'fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=200&q=80', description: 'Trending clothing, footwear, watches and accessories.', sortOrder: 2, productCount: 72, status: 'active', isFeatured: true, createdAt: '2026-08-08', updatedAt: '2026-08-10' },
+  { id: 3, name: 'Home & Living', slug: 'home-living', image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=200&q=80', description: 'Thoughtful essentials for every room in your home.', sortOrder: 3, productCount: 35, status: 'inactive', isFeatured: false, createdAt: '2026-08-05', updatedAt: '2026-08-09' },
+  { id: 4, name: 'Beauty & Care', slug: 'beauty-care', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=200&q=80', description: 'Skincare, cosmetics and personal care products.', sortOrder: 4, productCount: 29, status: 'active', isFeatured: false, createdAt: '2026-08-03', updatedAt: '2026-08-08' },
+]
+export default mockCategories

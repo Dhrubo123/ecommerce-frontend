@@ -1,0 +1,12 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRightLeft, Plus, Search } from 'lucide-react'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { getWarehouseTransfers } from '../../services/warehouseTransferService'
+import '../brands/brands.css'
+
+export default function WarehouseTransferList() {
+  const [transfers, setTransfers] = useState([]); const [search, setSearch] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(true)
+  useEffect(() => { setLoading(true); getWarehouseTransfers({ search }).then((data) => { setTransfers(data); setError('') }).catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load warehouse transfers.')).finally(() => setLoading(false)) }, [search])
+  return <AdminLayout title="Warehouse Transfers"><div className="brand-page"><div className="brand-heading"><div><p>INVENTORY & PURCHASE</p><h2>Warehouse Transfers</h2><span>Track inventory movements between warehouses.</span></div><Link className="brand-primary" to="/warehouse-transfers/create"><Plus size={17} />New Transfer</Link></div><section className="brand-card"><div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search transfers" /></label></div>{error && <div className="brand-error">{error}</div>}<div className="brand-table"><table><thead><tr><th>Transfer</th><th>From Warehouse</th><th>To Warehouse</th><th>Requisition</th><th>Items</th><th>Status</th><th>Created</th></tr></thead><tbody>{loading ? <tr><td colSpan="7">Loading warehouse transfers…</td></tr> : transfers.length === 0 ? <tr><td colSpan="7">No warehouse transfers found.</td></tr> : transfers.map((transfer, index) => <tr key={transfer.id || index}><td><strong><ArrowRightLeft size={14} /> #{transfer.id || index + 1}</strong></td><td>{transfer.fromWarehouse?.name || transfer.fromWarehouseName || '—'}</td><td>{transfer.toWarehouse?.name || transfer.toWarehouseName || '—'}</td><td>{transfer.requisitionId ? `#${transfer.requisitionId}` : 'Manual'}</td><td>{transfer.items?.length ?? transfer.itemCount ?? '—'}</td><td><span className="brand-status active">{transfer.status || 'Completed'}</span></td><td>{transfer.createdAt ? new Date(transfer.createdAt).toLocaleDateString() : '—'}</td></tr>)}</tbody></table></div></section></div></AdminLayout>
+}
