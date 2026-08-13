@@ -14,9 +14,9 @@ import './Sidebar.css'
 const menuSections = [
   { label: 'Main', items: [{ label: 'Dashboard', icon: LayoutDashboard }] },
   { label: 'Order Management', items: [
-    { label: 'Orders', icon: ShoppingCart, badge: 12 }, { label: 'Courier Tracking', icon: Truck },
+    { label: 'Orders', icon: ShoppingCart, badge: 12, children: ['Ecommerce Order List', 'Create Ecommerce Order'] }, { label: 'Courier Tracking', icon: Truck },
     { label: 'Pre-Orders', icon: CalendarClock, children: ['Overview / Analytics', 'Pre-Order List', 'Pre-Order Products', 'Commission', 'Profit Report', 'Pre-Order Settings'] },
-    { label: 'Refunds', icon: RotateCcw, badge: 3 }, { label: 'POS', icon: Monitor, children: ['New POS Sale', 'POS Sales History', 'POS Drafts'] }, { label: 'Conversations', icon: Mail, badge: 5 },
+    { label: 'Refunds', icon: RotateCcw, badge: 3, children: ['Sales Return List', 'Add Sales Return'] }, { label: 'POS', icon: Monitor, children: ['New POS Sale', 'POS Sales History', 'POS Drafts'] }, { label: 'Conversations', icon: Mail, badge: 5 },
   ] },
   { label: 'Catalog', items: [
     { label: 'Products', icon: Package, children: ['All Products', 'Add Product', 'Digital Products', { label: 'Pending Product Approval', badge: 8 }, 'Product Update Requests'] },
@@ -33,7 +33,7 @@ const menuSections = [
   ] },
   { label: 'Marketing & Content', items: [
     { label: 'Flash Deals', icon: Zap }, { label: 'Banners', icon: Image }, { label: 'Ad Campaigns', icon: Megaphone },
-    { label: 'Coupons', icon: Ticket }, { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText }, { label: 'CMS Pages', icon: FileText },
+    { label: 'Coupons', icon: Ticket }, { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText, children: ['All Blogs', 'Add Blog'] }, { label: 'CMS Pages', icon: FileText },
   ] },
   { label: 'People & Support', items: [
     { label: 'Customers', icon: Users }, { label: 'Employees', icon: UserCog }, { label: 'Drivers', icon: Car }, { label: 'Support Tickets', icon: Headphones }, { label: 'Contact Us', icon: Mail },
@@ -49,7 +49,7 @@ const menuSections = [
 ]
 
 const getItemLabel = (item) => typeof item === 'string' ? item : item.label
-const routes = { Dashboard: '/dashboard', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
+const routes = { Dashboard: '/dashboard', 'Ecommerce Order List': '/ecommerce-orders', 'Create Ecommerce Order': '/ecommerce-orders/create', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
@@ -78,7 +78,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
             <div className="nav-items">{section.items.map((item) => {
               const Icon = item.icon
               const isOpenMenu = openMenus[item.label]
-              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
+              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/ecommerce-orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
               return <div className="nav-item-group" key={item.label}>
                 <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={item.children ? isOpenMenu : undefined} onClick={() => item.children ? toggleMenu(item.label) : selectItem(item.label)}>
                   <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}{item.children && <ChevronDown className={`submenu-chevron ${isOpenMenu ? 'is-open' : ''}`} size={16} />}

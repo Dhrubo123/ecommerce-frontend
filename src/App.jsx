@@ -36,6 +36,13 @@ import EmployeeForm from './pages/employees/EmployeeForm'
 import StockReportList from './pages/warehouses/StockReportList'
 import WarehouseTransferForm from './pages/warehouses/WarehouseTransferForm'
 import WarehouseTransferList from './pages/warehouses/WarehouseTransferList'
+import EcommerceOrderList from './pages/orders/EcommerceOrderList'
+import EcommerceOrderForm from './pages/orders/EcommerceOrderForm'
+import ContactUs from './pages/contact/ContactUs'
+import BlogList from './pages/blogs/BlogList'
+import BlogForm from './pages/blogs/BlogForm'
+import SalesReturnList from './pages/returns/SalesReturnList'
+import SalesReturnForm from './pages/returns/SalesReturnForm'
 import './App.css'
 
 function App() {
@@ -87,6 +94,14 @@ function App() {
         <Route path="/stock-reports" element={<StockReportList />} />
         <Route path="/warehouse-transfers" element={<WarehouseTransferList />} />
         <Route path="/warehouse-transfers/create" element={<WarehouseTransferForm />} />
+        <Route path="/ecommerce-orders" element={<EcommerceOrderList />} />
+        <Route path="/ecommerce-orders/create" element={<EcommerceOrderForm />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/blogs" element={<BlogList />} />
+        <Route path="/blogs/create" element={<BlogForm />} />
+        <Route path="/blogs/:id/edit" element={<BlogForm />} />
+        <Route path="/sales-returns" element={<SalesReturnList />} />
+        <Route path="/sales-returns/create" element={<SalesReturnForm />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
