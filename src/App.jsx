@@ -43,6 +43,14 @@ import BlogList from './pages/blogs/BlogList'
 import BlogForm from './pages/blogs/BlogForm'
 import SalesReturnList from './pages/returns/SalesReturnList'
 import SalesReturnForm from './pages/returns/SalesReturnForm'
+import BannerList from './pages/banners/BannerList'
+import BannerForm from './pages/banners/BannerForm'
+import FlashSaleList from './pages/flash-sales/FlashSaleList'
+import FlashSaleForm from './pages/flash-sales/FlashSaleForm'
+import PromoCodeList from './pages/promo-codes/PromoCodeList'
+import PromoCodeForm from './pages/promo-codes/PromoCodeForm'
+import AdCampaignList from './pages/ad-campaigns/AdCampaignList'
+import AdCampaignForm from './pages/ad-campaigns/AdCampaignForm'
 import './App.css'
 
 function App() {
@@ -102,6 +110,18 @@ function App() {
         <Route path="/blogs/:id/edit" element={<BlogForm />} />
         <Route path="/sales-returns" element={<SalesReturnList />} />
         <Route path="/sales-returns/create" element={<SalesReturnForm />} />
+        <Route path="/banners" element={<BannerList />} />
+        <Route path="/banners/create" element={<BannerForm />} />
+        <Route path="/banners/:id/edit" element={<BannerForm />} />
+        <Route path="/flash-sales" element={<FlashSaleList />} />
+        <Route path="/flash-sales/create" element={<FlashSaleForm />} />
+        <Route path="/flash-sales/:id/edit" element={<FlashSaleForm />} />
+        <Route path="/promo-codes" element={<PromoCodeList />} />
+        <Route path="/promo-codes/create" element={<PromoCodeForm />} />
+        <Route path="/promo-codes/:id/edit" element={<PromoCodeForm />} />
+        <Route path="/ad-campaigns" element={<AdCampaignList />} />
+        <Route path="/ad-campaigns/create" element={<AdCampaignForm />} />
+        <Route path="/ad-campaigns/:id/edit" element={<AdCampaignForm />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

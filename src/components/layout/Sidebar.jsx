@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftRight, BadgeDollarSign, BadgePercent, BarChart3, Bell, Boxes,
   CalendarClock, Car, ChevronDown, ChevronLeft, ChevronRight, CircleUserRound,
-  ClipboardList, Factory, FileText, Headphones, Image, Landmark,
+  ClipboardList, Factory, FileText, Headphones, Landmark,
   Languages, LayoutDashboard, LogOut, Mail, MapPin, Megaphone, Menu, Monitor,
   Package, Plug, Receipt, RefreshCcw, RotateCcw, Settings, ShieldCheck,
-  ShoppingCart, SlidersHorizontal, Store, Tags, Ticket, TrendingUp, Truck,
-  Undo2, UserCog, Users, Wallet, X, Zap,
+  ShoppingCart, SlidersHorizontal, Store, Tags, TrendingUp, Truck,
+  Undo2, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -32,8 +32,8 @@ const menuSections = [
     { label: 'Payouts', icon: Wallet }, { label: 'Withdrawals', icon: Landmark }, { label: 'Subscriptions', icon: RefreshCcw },
   ] },
   { label: 'Marketing & Content', items: [
-    { label: 'Flash Deals', icon: Zap }, { label: 'Banners', icon: Image }, { label: 'Ad Campaigns', icon: Megaphone },
-    { label: 'Coupons', icon: Ticket }, { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText, children: ['All Blogs', 'Add Blog'] }, { label: 'CMS Pages', icon: FileText },
+    { label: 'Promotions', icon: Megaphone, children: ['Flash Deals', 'Banners', 'Ad Campaigns', 'Coupons'] },
+    { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText, children: ['All Blogs', 'Add Blog'] }, { label: 'CMS Pages', icon: FileText },
   ] },
   { label: 'People & Support', items: [
     { label: 'Customers', icon: Users }, { label: 'Employees', icon: UserCog }, { label: 'Drivers', icon: Car }, { label: 'Support Tickets', icon: Headphones }, { label: 'Contact Us', icon: Mail },
@@ -49,7 +49,7 @@ const menuSections = [
 ]
 
 const getItemLabel = (item) => typeof item === 'string' ? item : item.label
-const routes = { Dashboard: '/dashboard', 'Ecommerce Order List': '/ecommerce-orders', 'Create Ecommerce Order': '/ecommerce-orders/create', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
+const routes = { Dashboard: '/dashboard', 'Ecommerce Order List': '/ecommerce-orders', 'Create Ecommerce Order': '/ecommerce-orders/create', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'Flash Deals': '/flash-sales', Banners: '/banners', 'Ad Campaigns': '/ad-campaigns', Coupons: '/promo-codes', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
@@ -78,13 +78,23 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
             <div className="nav-items">{section.items.map((item) => {
               const Icon = item.icon
               const isOpenMenu = openMenus[item.label]
-              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/ecommerce-orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
+              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/ecommerce-orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Promotions' ? location.pathname.startsWith('/flash-sales') || location.pathname.startsWith('/banners') || location.pathname.startsWith('/ad-campaigns') || location.pathname.startsWith('/promo-codes') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
               return <div className="nav-item-group" key={item.label}>
-                <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={item.children ? isOpenMenu : undefined} onClick={() => item.children ? toggleMenu(item.label) : selectItem(item.label)}>
-                  <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}{item.children && <ChevronDown className={`submenu-chevron ${isOpenMenu ? 'is-open' : ''}`} size={16} />}
-                </button>
+                {item.children ? (
+                  <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={isOpenMenu} onClick={() => toggleMenu(item.label)}>
+                    <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}<ChevronDown className={`submenu-chevron ${isOpenMenu ? 'is-open' : ''}`} size={16} />
+                  </button>
+                ) : routes[item.label] ? (
+                  <Link className={`nav-item ${isActive ? 'is-active' : ''}`} to={routes[item.label]} title={isCollapsed ? item.label : undefined} style={{ textDecoration: 'none' }} onClick={() => { setActiveItem(item.label); onClose?.() }}>
+                    <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}
+                  </Link>
+                ) : (
+                  <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} onClick={() => selectItem(item.label)}>
+                    <Icon className="nav-icon" size={18} strokeWidth={1.9} /><span className="nav-label">{item.label}</span>{item.badge && <span className="nav-badge">{item.badge}</span>}
+                  </button>
+                )}
                 {item.children && <div className={`submenu ${isOpenMenu ? 'is-open' : ''}`}>
-                  <div className="submenu-inner">{item.children.map((child) => { const label = getItemLabel(child); const childActive = routes[label] ? (label.includes('Categories') ? location.pathname.startsWith('/categories') : label.includes('Subcategories') ? location.pathname.startsWith('/subcategories') : location.pathname === routes[label]) : activeItem === label; return <button className={`submenu-item ${childActive ? 'is-active' : ''}`} type="button" key={label} onClick={() => selectItem(label)}><span>{label}</span>{typeof child === 'object' && child.badge && <span className="nav-badge">{child.badge}</span>}</button> })}</div>
+                  <div className="submenu-inner">{item.children.map((child) => { const label = getItemLabel(child); const childActive = routes[label] ? (label.includes('Categories') ? location.pathname.startsWith('/categories') : label.includes('Subcategories') ? location.pathname.startsWith('/subcategories') : location.pathname === routes[label]) : activeItem === label; return routes[label] ? <Link className={`submenu-item ${childActive ? 'is-active' : ''}`} key={label} to={routes[label]} style={{ textDecoration: 'none' }} onClick={() => { setActiveItem(label); onClose?.() }}><span>{label}</span>{typeof child === 'object' && child.badge && <span className="nav-badge">{child.badge}</span>}</Link> : <button className={`submenu-item ${childActive ? 'is-active' : ''}`} type="button" key={label} onClick={() => selectItem(label)}><span>{label}</span>{typeof child === 'object' && child.badge && <span className="nav-badge">{child.badge}</span>}</button> })}</div>
                 </div>}
               </div>
             })}</div>

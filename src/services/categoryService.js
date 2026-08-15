@@ -27,7 +27,7 @@ const toCategoryPayload = (data) => {
   const payload = new FormData()
   payload.append('name', data.name.trim())
   payload.append('slug', data.slug.trim())
-  payload.append('isActive', (data.isActive ?? data.status === 'active') ? '1' : '0')
+  payload.append('isActive', String(data.isActive ?? data.status === 'active'))
   payload.append('order', String(Number(data.order ?? data.sortOrder ?? 0)))
   payload.append('description', data.description?.trim() ?? '')
 

@@ -2,19 +2,30 @@ import api from './api'
 
 const unwrap = (response) => response.data?.data ?? response.data
 
-const blogPayload = (blog) => ({
-  title: blog.title.trim(),
-  slug: blog.slug.trim(),
-  category: blog.category.trim(),
-  tags: Array.isArray(blog.tags) ? blog.tags : blog.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-  description: blog.description.trim(),
-  image: blog.image.trim(),
-  isActive: Boolean(blog.isActive),
-})
+// The Blog API accepts multipart/form-data. Axios supplies the boundary.
+const blogPayload = (blog) => {
+  const payload = new FormData()
+  const tags = Array.isArray(blog.tags)
+    ? blog.tags
+    : blog.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+
+  payload.append('title', blog.title.trim())
+  payload.append('slug', blog.slug.trim())
+  payload.append('category_id', String(Number(blog.categoryId)))
+  payload.append('tags', JSON.stringify(tags))
+  payload.append('description', blog.description.trim())
+  payload.append('isActive', String(Boolean(blog.isActive)))
+  if (blog.image instanceof File) payload.append('image', blog.image)
+
+  return payload
+}
 
 // Blog API: GET/POST /admin/blogs and GET/PATCH/DELETE /admin/blogs/:id
 export const getBlogs = async (params = {}) => {
-  const data = unwrap(await api.get('/admin/blogs', { params }))
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== '' && value !== null && value !== undefined),
+  )
+  const data = unwrap(await api.get('/admin/blogs', { params: cleanParams }))
   return Array.isArray(data) ? data : (data.blogs ?? data.items ?? [])
 }
 

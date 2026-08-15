@@ -68,16 +68,15 @@ export default function CategoryForm() {
     if (!form.name.trim()) next.name = 'Category name is required.'
     if (!form.slug.trim()) next.slug = 'Slug is required.'
     if (!isEdit && !form.image) next.image = 'Category image is required.'
-    if (!isEdit && !form.banner) next.banner = 'Category banner is required.'
     if (Number(form.order) < 0) next.order = 'Order cannot be negative.'
     if (Object.keys(next).length) return setErrors(next)
     setSaving(true)
     try { await (isEdit ? updateCategory(id, form) : createCategory(form)); navigate('/categories') } catch (error) { setErrors({ api: error.response?.data?.message || 'Unable to save category.' }) } finally { setSaving(false) }
   }
 
-  const uploadField = (field, label, preview) => (
+  const uploadField = (field, label, preview, required = true) => (
     <div className="form-field">
-      <span>{label} *</span>
+      <span>{label}{required ? ' *' : ' (Optional)'}</span>
       <div className="image-upload">
         {preview ? (
           <>
@@ -134,7 +133,7 @@ export default function CategoryForm() {
             </div>
 
             {uploadField('image', 'Category Image', form.imagePreview)}
-            {uploadField('banner', 'Category Banner', form.bannerPreview)}
+            {uploadField('banner', 'Category Banner', form.bannerPreview, false)}
 
             <label className="form-field">
               <span>Description</span>
