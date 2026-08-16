@@ -38,6 +38,7 @@ import WarehouseTransferForm from './pages/warehouses/WarehouseTransferForm'
 import WarehouseTransferList from './pages/warehouses/WarehouseTransferList'
 import EcommerceOrderList from './pages/orders/EcommerceOrderList'
 import EcommerceOrderForm from './pages/orders/EcommerceOrderForm'
+import EcommerceOrderView from './pages/orders/EcommerceOrderView'
 import ContactUs from './pages/contact/ContactUs'
 import BlogList from './pages/blogs/BlogList'
 import BlogForm from './pages/blogs/BlogForm'
@@ -105,6 +106,7 @@ function App() {
         <Route path="/warehouse-transfers/create" element={<WarehouseTransferForm />} />
         <Route path="/orders" element={<EcommerceOrderList />} />
         <Route path="/orders/create" element={<EcommerceOrderForm />} />
+        <Route path="/orders/:id" element={<EcommerceOrderView />} />
         <Route path="/ecommerce-orders" element={<EcommerceOrderList />} />
         <Route path="/ecommerce-orders/create" element={<EcommerceOrderForm />} />
         <Route path="/contact-us" element={<ContactUs />} />

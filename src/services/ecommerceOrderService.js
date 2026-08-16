@@ -12,3 +12,9 @@ export const getEcommerceOrders = async (params = {}) => {
 }
 
 export const createEcommerceOrder = async (data) => unwrap(await api.post('/admin/orders', data))
+
+export const getEcommerceOrder = async (id) => unwrap(await api.get(`/admin/orders/${id}`))
+export const updateOrderStatus = async (id, status) => unwrap(await api.patch(`/admin/orders/${id}/status`, { status }))
+export const updateOrderPaymentStatus = async (id, paymentStatus) => unwrap(await api.patch(`/admin/orders/${id}/payment-status`, { paymentStatus }))
+// Confirm an order by allocating its items to warehouses.
+export const confirmOrder = async (id, allocations) => unwrap(await api.patch(`/admin/orders/${id}/confirm`, { allocations }))
