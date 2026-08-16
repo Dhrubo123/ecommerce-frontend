@@ -27,6 +27,9 @@ const menuSections = [
     { label: 'Stock Report', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Invoices', 'Purchase Summary'] },
     { label: 'Purchase Returns', icon: Undo2 }, { label: 'Suppliers', icon: Factory }, { label: 'Warehouses', icon: Boxes, children: ['All Warehouses', 'Add Warehouse', 'Warehouse Requisition List', 'Warehouse Requisitions', 'Warehouse Transfer List', 'New Warehouse Transfer'] },
   ] },
+  { label: 'Accounts', items: [
+    { label: 'Accounts', icon: Landmark, children: ['Chart of Account', 'Sub Account List', 'Predefined Accounts', 'Financial Year', 'Opening Balance', 'Debit Voucher', 'Credit Voucher', 'Contra Voucher', 'Journal Voucher', 'Bank Reconciliation', 'Add Payment Method', 'Payment Method List', 'Supplier Payment', 'Customer Receive', 'Service Payment', 'Cash Adjustment', 'Voucher Approval'] },
+  ] },
   { label: 'Marketplace', items: [
     { label: 'Shops / Vendors', icon: Store, children: ['All Shops', 'Add Shop', 'Shop Approval'] }, { label: 'Commission', icon: BadgePercent },
     { label: 'Payouts', icon: Wallet }, { label: 'Withdrawals', icon: Landmark }, { label: 'Subscriptions', icon: RefreshCcw },
@@ -50,6 +53,9 @@ const menuSections = [
 
 const getItemLabel = (item) => typeof item === 'string' ? item : item.label
 const routes = { Dashboard: '/dashboard', 'Order List': '/orders', 'Create Order': '/orders/create', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'Flash Deals': '/flash-sales', Banners: '/banners', 'Ad Campaigns': '/ad-campaigns', Coupons: '/promo-codes', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
+
+routes['Roles & Permissions'] = '/roles'
+routes['Chart of Account'] = '/chart-of-accounts'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()

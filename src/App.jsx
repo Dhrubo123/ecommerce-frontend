@@ -52,6 +52,9 @@ import PromoCodeList from './pages/promo-codes/PromoCodeList'
 import PromoCodeForm from './pages/promo-codes/PromoCodeForm'
 import AdCampaignList from './pages/ad-campaigns/AdCampaignList'
 import AdCampaignForm from './pages/ad-campaigns/AdCampaignForm'
+import RoleList from './pages/roles/RoleList'
+import RoleForm from './pages/roles/RoleForm'
+import ChartOfAccounts from './pages/accounts/ChartOfAccounts'
 import './App.css'
 
 function App() {
@@ -127,6 +130,10 @@ function App() {
         <Route path="/ad-campaigns" element={<AdCampaignList />} />
         <Route path="/ad-campaigns/create" element={<AdCampaignForm />} />
         <Route path="/ad-campaigns/:id/edit" element={<AdCampaignForm />} />
+        <Route path="/roles" element={<RoleList />} />
+        <Route path="/roles/create" element={<RoleForm />} />
+        <Route path="/roles/:id/edit" element={<RoleForm />} />
+        <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
