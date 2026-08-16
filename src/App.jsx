@@ -103,6 +103,8 @@ function App() {
         <Route path="/stock-reports" element={<StockReportList />} />
         <Route path="/warehouse-transfers" element={<WarehouseTransferList />} />
         <Route path="/warehouse-transfers/create" element={<WarehouseTransferForm />} />
+        <Route path="/orders" element={<EcommerceOrderList />} />
+        <Route path="/orders/create" element={<EcommerceOrderForm />} />
         <Route path="/ecommerce-orders" element={<EcommerceOrderList />} />
         <Route path="/ecommerce-orders/create" element={<EcommerceOrderForm />} />
         <Route path="/contact-us" element={<ContactUs />} />
