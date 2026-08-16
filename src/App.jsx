@@ -55,6 +55,8 @@ import AdCampaignForm from './pages/ad-campaigns/AdCampaignForm'
 import RoleList from './pages/roles/RoleList'
 import RoleForm from './pages/roles/RoleForm'
 import ChartOfAccounts from './pages/accounts/ChartOfAccounts'
+import BankList from './pages/accounts/BankList'
+import BankForm from './pages/accounts/BankForm'
 import './App.css'
 
 function App() {
@@ -134,6 +136,9 @@ function App() {
         <Route path="/roles/create" element={<RoleForm />} />
         <Route path="/roles/:id/edit" element={<RoleForm />} />
         <Route path="/chart-of-accounts" element={<ChartOfAccounts />} />
+        <Route path="/banks" element={<BankList />} />
+        <Route path="/banks/create" element={<BankForm />} />
+        <Route path="/banks/:id/edit" element={<BankForm />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

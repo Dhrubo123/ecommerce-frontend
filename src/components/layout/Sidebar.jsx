@@ -28,7 +28,7 @@ const menuSections = [
     { label: 'Purchase Returns', icon: Undo2 }, { label: 'Suppliers', icon: Factory }, { label: 'Warehouses', icon: Boxes, children: ['All Warehouses', 'Add Warehouse', 'Warehouse Requisition List', 'Warehouse Requisitions', 'Warehouse Transfer List', 'New Warehouse Transfer'] },
   ] },
   { label: 'Accounts', items: [
-    { label: 'Accounts', icon: Landmark, children: ['Chart of Account', 'Sub Account List', 'Predefined Accounts', 'Financial Year', 'Opening Balance', 'Debit Voucher', 'Credit Voucher', 'Contra Voucher', 'Journal Voucher', 'Bank Reconciliation', 'Add Payment Method', 'Payment Method List', 'Supplier Payment', 'Customer Receive', 'Service Payment', 'Cash Adjustment', 'Voucher Approval'] },
+    { label: 'Accounts', icon: Landmark, children: ['Chart of Account', 'Banks', 'Sub Account List', 'Predefined Accounts', 'Financial Year', 'Opening Balance', 'Debit Voucher', 'Credit Voucher', 'Contra Voucher', 'Journal Voucher', 'Bank Reconciliation', 'Add Payment Method', 'Payment Method List', 'Supplier Payment', 'Customer Receive', 'Service Payment', 'Cash Adjustment', 'Voucher Approval'] },
   ] },
   { label: 'Marketplace', items: [
     { label: 'Shops / Vendors', icon: Store, children: ['All Shops', 'Add Shop', 'Shop Approval'] }, { label: 'Commission', icon: BadgePercent },
@@ -56,6 +56,7 @@ const routes = { Dashboard: '/dashboard', 'Order List': '/orders', 'Create Order
 
 routes['Roles & Permissions'] = '/roles'
 routes['Chart of Account'] = '/chart-of-accounts'
+routes.Banks = '/banks'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
