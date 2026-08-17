@@ -57,6 +57,10 @@ import RoleForm from './pages/roles/RoleForm'
 import ChartOfAccounts from './pages/accounts/ChartOfAccounts'
 import BankList from './pages/accounts/BankList'
 import BankForm from './pages/accounts/BankForm'
+import SupplierPaymentList from './pages/accounts/SupplierPaymentList'
+import SupplierPaymentForm from './pages/accounts/SupplierPaymentForm'
+import CustomerPaymentForm from './pages/accounts/CustomerPaymentForm'
+import CreditVoucherForm from './pages/accounts/CreditVoucherForm'
 import './App.css'
 
 function App() {
@@ -139,6 +143,10 @@ function App() {
         <Route path="/banks" element={<BankList />} />
         <Route path="/banks/create" element={<BankForm />} />
         <Route path="/banks/:id/edit" element={<BankForm />} />
+        <Route path="/supplier-payments" element={<SupplierPaymentList />} />
+        <Route path="/supplier-payments/create" element={<SupplierPaymentForm />} />
+        <Route path="/customer-payments/create" element={<CustomerPaymentForm />} />
+        <Route path="/credit-vouchers/create" element={<CreditVoucherForm />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

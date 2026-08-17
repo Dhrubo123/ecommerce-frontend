@@ -57,6 +57,9 @@ const routes = { Dashboard: '/dashboard', 'Order List': '/orders', 'Create Order
 routes['Roles & Permissions'] = '/roles'
 routes['Chart of Account'] = '/chart-of-accounts'
 routes.Banks = '/banks'
+routes['Supplier Payment'] = '/supplier-payments/create'
+routes['Customer Receive'] = '/customer-payments/create'
+routes['Credit Voucher'] = '/credit-vouchers/create'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
