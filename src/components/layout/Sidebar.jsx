@@ -60,6 +60,9 @@ routes.Banks = '/banks'
 routes['Supplier Payment'] = '/supplier-payments/create'
 routes['Customer Receive'] = '/customer-payments/create'
 routes['Credit Voucher'] = '/credit-vouchers/create'
+routes['Debit Voucher'] = '/debit-vouchers/create'
+routes['Contra Voucher'] = '/contra-vouchers/create'
+routes['Journal Voucher'] = '/journal-vouchers/create'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()

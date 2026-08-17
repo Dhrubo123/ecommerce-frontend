@@ -61,7 +61,11 @@ import SupplierPaymentList from './pages/accounts/SupplierPaymentList'
 import SupplierPaymentForm from './pages/accounts/SupplierPaymentForm'
 import CustomerPaymentForm from './pages/accounts/CustomerPaymentForm'
 import CreditVoucherForm from './pages/accounts/CreditVoucherForm'
+import DebitVoucherForm from './pages/accounts/DebitVoucherForm'
+import ContraVoucherForm from './pages/accounts/ContraVoucherForm'
+import JournalVoucherForm from './pages/accounts/JournalVoucherForm'
 import './App.css'
+import './form-controls.css'
 
 function App() {
   return (
@@ -147,6 +151,9 @@ function App() {
         <Route path="/supplier-payments/create" element={<SupplierPaymentForm />} />
         <Route path="/customer-payments/create" element={<CustomerPaymentForm />} />
         <Route path="/credit-vouchers/create" element={<CreditVoucherForm />} />
+        <Route path="/debit-vouchers/create" element={<DebitVoucherForm />} />
+        <Route path="/contra-vouchers/create" element={<ContraVoucherForm />} />
+        <Route path="/journal-vouchers/create" element={<JournalVoucherForm />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
