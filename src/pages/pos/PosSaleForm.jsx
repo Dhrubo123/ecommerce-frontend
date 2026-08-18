@@ -22,6 +22,7 @@ const stockOf = (product) => Number(product.stockQuantity ?? product.stock ?? 0)
 const money = (value) => Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const posDraftKey = 'ecommerce-admin:pos-sale-draft'
 const getDraft = () => { try { return JSON.parse(sessionStorage.getItem(posDraftKey) || 'null') || {} } catch { return {} } }
+const firstOptionId = (product, keys) => { for (const key of keys) { const values = product[key]; const first = Array.isArray(values) ? values[0] : values; const id = Number(first?.id ?? first?.sizeId ?? first?.colorId ?? first); if (Number.isFinite(id) && id > 0) return id } return null }
 
 export default function PosSaleForm() {
   const navigate = useNavigate()
@@ -57,7 +58,7 @@ export default function PosSaleForm() {
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id)
       if (existing) return current.map((item) => item.productId === product.id ? { ...item, quantity: Math.min(item.quantity + 1, stockOf(product)) } : item)
-      return [...current, { productId: product.id, name: product.name, sku: product.sku, image: getImage(product), quantity: 1, unitPrice: priceOf(product), discount: 0, stock: stockOf(product) }]
+      return [...current, { productId: product.id, name: product.name, sku: product.sku, image: getImage(product), quantity: 1, unitPrice: priceOf(product), discount: 0, stock: stockOf(product), sizeId: firstOptionId(product, ['sizes', 'sizeIds', 'sizeId']), colorId: firstOptionId(product, ['colors', 'colorIds', 'colorId']) }]
     })
   }
 
@@ -77,7 +78,7 @@ export default function PosSaleForm() {
     }
     setSaving(true); setError('')
     try {
-      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: form.paymentMethod, note: form.note.trim(), discount: Number(form.discount), paidAmount: Number(form.paidAmount), items: cart.map(({ productId, quantity, unitPrice, discount }) => ({ productId: Number(productId), quantity: Number(quantity), unitPrice: Number(unitPrice), discount: Number(discount) })) })
+      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: form.paymentMethod, discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount: Number(form.paidAmount), dueAmount: Math.max(0, grandTotal - Number(form.paidAmount || 0)), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
       sessionStorage.removeItem(posDraftKey)
       navigate('/pos-sales')
     } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to complete POS sale.') }
