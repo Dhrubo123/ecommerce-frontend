@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ImagePlus, Upload, X } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { createCustomer, getCustomer, updateCustomer } from '../../services/customerService'
 import '../brands/brands.css'
@@ -12,7 +12,9 @@ const initialForm = { firstName: '', lastName: '', phone: '', email: '', passwor
 export default function CustomerForm() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const editing = Boolean(id)
+  const returnTo = searchParams.get('returnTo') === '/pos-sales/create' ? '/pos-sales/create' : '/customers'
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -46,7 +48,7 @@ export default function CustomerForm() {
     setSaving(true)
     try {
       await (editing ? updateCustomer(id, form) : createCustomer(form))
-      navigate('/customers')
+      navigate(returnTo)
     } catch (error) {
       setErrors({ api: error.response?.data?.message || 'Unable to save customer.' })
     } finally {
@@ -64,7 +66,7 @@ export default function CustomerForm() {
       <label>Date of Birth *<input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={change} />{fieldError('dateOfBirth')}</label>
       <div className="form-field"><span>Customer Image (Optional)</span><div className="image-upload">{form.imagePreview ? <><img src={form.imagePreview} alt="Customer preview" /><button type="button" onClick={() => setForm((current) => ({ ...current, image: null, imagePreview: '' }))}><X size={14} /> Remove image</button></> : <><ImagePlus size={28} /><strong>Upload customer image</strong><label className="upload-button"><Upload size={15} /> Choose file<input type="file" accept="image/*" onChange={chooseImage} /></label><small>PNG, JPG or WebP</small></>}</div>{errors.image && <small className="field-error">{errors.image}</small>}</div>
       <label className="blog-toggle"><input type="checkbox" name="isActive" checked={form.isActive} onChange={change} /><span><strong>Active customer</strong><small>Customer account can be used when enabled.</small></span></label>
-      <div className="brand-form-actions"><button type="button" onClick={() => navigate('/customers')}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving...' : editing ? 'Update Customer' : 'Save Customer'}</button></div>
+      <div className="brand-form-actions"><button type="button" onClick={() => navigate(returnTo)}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving...' : editing ? 'Update Customer' : 'Save Customer'}</button></div>
     </section><aside><span>CUSTOMER PREVIEW</span><div className="preview-image">{form.imagePreview ? <img src={form.imagePreview} alt="Customer" /> : <ImagePlus size={34} />}</div><h3>{`${form.firstName} ${form.lastName}`.trim() || 'Customer name'}</h3><p>{form.phone || 'Phone number'}</p><p>{form.email || 'Email address'}</p><p>{form.isActive ? 'Active customer' : 'Inactive customer'}</p></aside></form>
   </div></AdminLayout>
 }
