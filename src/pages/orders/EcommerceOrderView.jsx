@@ -21,7 +21,7 @@ export default function EcommerceOrderView() {
 
   useEffect(() => {
     Promise.all([getEcommerceOrder(id), getWarehouses()]).then(([data, warehouseData]) => {
-      setOrder(data); setWarehouses(warehouseData); setStatus(data.status || 'pending'); setPaymentStatus(data.paymentStatus || 'unpaid')
+      setOrder(data); setWarehouses(warehouseData); setStatus(String(data.status ?? data.orderStatus ?? data.order_status ?? 'pending').toLowerCase()); setPaymentStatus(String(data.paymentStatus ?? data.payment_status ?? 'unpaid').toLowerCase())
       const items = data.items || data.orderItems || []
       setAllocations(items.map((item) => ({ orderItemId: item.id ?? item.orderItemId, warehouseId: item.warehouseId ?? data.warehouseId ?? '', quantity: item.quantity ?? 1 })))
     }).catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load this order.'))
