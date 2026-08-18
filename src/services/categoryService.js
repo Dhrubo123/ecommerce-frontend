@@ -1,15 +1,34 @@
-import mockCategories from '../data/mockCategories'
+import api from './api'
 
-// TODO backend endpoints: GET /categories?page=1&search=&status= | POST /categories | GET /categories/:id
-// TODO: PATCH /categories/:id | DELETE /categories/:id | PATCH /categories/:id/status
-// TODO: POST /categories/bulk-status | POST /categories/bulk-delete | POST /categories/:id/image
-let categories = [...mockCategories]
-const result = (value) => new Promise((resolve) => window.setTimeout(() => resolve(value), 350))
-export const getCategories = (params = {}) => result(categories.filter((item) => (!params.search || `${item.name} ${item.slug}`.toLowerCase().includes(params.search.toLowerCase())) && (!params.status || params.status === 'all' || item.status === params.status)))
-export const getCategory = (id) => result(categories.find((item) => item.id === Number(id)))
-export const createCategory = (data) => { const item = { ...data, id: Date.now(), productCount: 0, createdAt: '2026-08-10', updatedAt: '2026-08-10' }; categories = [item, ...categories]; return result(item) }
-export const updateCategory = (id, data) => { categories = categories.map((item) => item.id === Number(id) ? { ...item, ...data, updatedAt: '2026-08-10' } : item); return result(categories.find((item) => item.id === Number(id))) }
-export const deleteCategory = (id) => { categories = categories.filter((item) => item.id !== Number(id)); return result(true) }
-export const updateCategoryStatus = (id, status) => updateCategory(id, { status })
-export const bulkUpdateStatus = (ids, status) => { categories = categories.map((item) => ids.includes(item.id) ? { ...item, status } : item); return result(true) }
-export const bulkDeleteCategories = (ids) => { categories = categories.filter((item) => !ids.includes(item.id)); return result(true) }
+const unwrap = (response) => response.data?.data ?? response.data
+const toUi = (category) => ({
+  ...category,
+  image: category.image ?? category.imageUrl ?? '',
+  status: (category.isActive ?? category.is_active ?? category.status === 'active') ? 'active' : 'inactive',
+  isActive: Boolean(category.isActive ?? category.is_active ?? category.status === 'active'),
+  description: category.description ?? '',
+  sortOrder: category.sortOrder ?? category.order ?? 0,
+  productCount: category.productCount ?? 0,
+})
+const asList = (data) => (Array.isArray(data) ? data : (data.categories ?? data.items ?? [])).map(toUi)
+const toPayload = (category) => {
+  const payload = new FormData()
+  payload.append('name', String(category.name ?? '').trim())
+  payload.append('slug', String(category.slug ?? '').trim())
+  payload.append('isActive', String(category.isActive ?? category.status === 'active'))
+  payload.append('order', String(Number(category.order ?? category.sortOrder ?? 0)))
+  payload.append('description', String(category.description ?? '').trim())
+  if (category.image instanceof File) payload.append('image', category.image)
+  if (category.banner instanceof File) payload.append('banner', category.banner)
+  return payload
+}
+
+// Live admin category API. This is also the source of truth for parent-category IDs.
+export const getCategories = async (params = {}) => asList(unwrap(await api.get('/admin/categories', { params })))
+export const getCategory = async (id) => toUi(unwrap(await api.get(`/admin/categories/${id}`)))
+export const createCategory = async (data) => toUi(unwrap(await api.post('/admin/categories', toPayload(data))))
+export const updateCategory = async (id, data) => toUi(unwrap(await api.patch(`/admin/categories/${id}`, toPayload(data))))
+export const deleteCategory = async (id) => { await api.delete(`/admin/categories/${id}`); return true }
+export const updateCategoryStatus = (id, status) => api.patch(`/admin/categories/${id}`, { isActive: status === 'active' })
+export const bulkUpdateStatus = (ids, status) => Promise.all(ids.map((id) => updateCategoryStatus(id, status)))
+export const bulkDeleteCategories = (ids) => Promise.all(ids.map((id) => deleteCategory(id)))

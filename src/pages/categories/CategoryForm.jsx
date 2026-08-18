@@ -71,7 +71,7 @@ export default function CategoryForm() {
     if (Number(form.order) < 0) next.order = 'Order cannot be negative.'
     if (Object.keys(next).length) return setErrors(next)
     setSaving(true)
-    try { await (isEdit ? updateCategory(id, form) : createCategory(form)); navigate('/categories') } catch (error) { setErrors({ api: error.response?.data?.message || 'Unable to save category.' }) } finally { setSaving(false) }
+    try { await (isEdit ? updateCategory(id, form) : createCategory(form)); navigate('/categories') } catch (error) { const body = error.response?.data; setErrors({ api: body?.errors?.map?.((item) => item.message || item.msg || JSON.stringify(item)).join(' ') || body?.message || 'Unable to save category.' }) } finally { setSaving(false) }
   }
 
   const uploadField = (field, label, preview, required = true) => (

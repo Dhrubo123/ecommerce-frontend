@@ -1,36 +1,19 @@
 import { useEffect, useState } from 'react'
+import { ImagePlus, Upload, X } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { createBrand, getBrand, updateBrand } from '../../services/brandService'
 import './brands.css'
 
-const blank = { name: '', slug: '', logoUrl: '', description: '', status: 'active' }
+const blank = { name: '', slug: '', image: null, imagePreview: '', isActive: true }
 const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
 export default function BrandForm() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const isEdit = Boolean(id)
-  const [brand, setBrand] = useState(blank)
-  const [errors, setErrors] = useState({})
-  const [slugEdited, setSlugEdited] = useState(false)
-
-  useEffect(() => { if (isEdit) getBrand(id).then((data) => { setBrand(data); setSlugEdited(true) }).catch(() => setErrors({ api: 'Unable to load brand.' })) }, [id, isEdit])
-
-  const change = (event) => {
-    const { name, value } = event.target
-    if (name === 'slug') setSlugEdited(true)
-    setBrand((current) => ({ ...current, [name]: value, ...(name === 'name' && !slugEdited ? { slug: slugify(value) } : {}) }))
-    setErrors((current) => ({ ...current, [name]: '', api: '' }))
-  }
-  const save = async (event) => {
-    event.preventDefault()
-    const next = {}
-    if (!brand.name.trim()) next.name = 'Brand name is required.'
-    if (!brand.slug.trim()) next.slug = 'Slug is required.'
-    if (Object.keys(next).length) return setErrors(next)
-    try { await (isEdit ? updateBrand(id, brand) : createBrand(brand)); navigate('/brands') } catch (error) { setErrors({ api: error.response?.data?.message || 'Unable to save brand.' }) }
-  }
-
-  return <AdminLayout title={isEdit ? 'Edit Brand' : 'Add Brand'}><div className="brand-page"><div className="brand-crumb"><Link to="/dashboard">Dashboard</Link> / <Link to="/brands">Brands</Link> / {isEdit ? 'Edit Brand' : 'Add Brand'}</div><div className="brand-heading"><div><h2>{isEdit ? 'Edit Brand' : 'Add Brand'}</h2><span>Set the brand identity used in your product catalog.</span></div></div><form className="brand-form" onSubmit={save}><section><h3>Brand information</h3>{errors.api && <div className="brand-error">{errors.api}</div>}<label>Brand Name<input name="name" value={brand.name} onChange={change} placeholder="Apple" />{errors.name && <small>{errors.name}</small>}</label><label>Slug<input name="slug" value={brand.slug} onChange={change} placeholder="apple" />{errors.slug && <small>{errors.slug}</small>}</label><label>Logo URL<input name="logoUrl" value={brand.logoUrl} onChange={change} placeholder="https://example.com/logos/apple.png" /></label><label>Description<textarea name="description" value={brand.description} onChange={change} rows="4" placeholder="Premium electronics and accessories" /></label><label>Status<select name="status" value={brand.status} onChange={change}><option value="active">Active</option><option value="inactive">Inactive</option></select></label><div className="brand-form-actions"><button type="button" onClick={() => navigate('/brands')}>Cancel</button><button className="brand-primary">{isEdit ? 'Update Brand' : 'Save Brand'}</button></div></section><aside><span>BRAND PREVIEW</span>{brand.logoUrl ? <img src={brand.logoUrl} alt="" /> : <div className="brand-preview-logo">{brand.name?.[0] || 'B'}</div>}<h3>{brand.name || 'Brand name'}</h3><code>{brand.slug || 'brand-slug'}</code><p>{brand.description || 'Brand description'}</p></aside></form></div></AdminLayout>
+  const { id } = useParams(); const navigate = useNavigate(); const isEdit = Boolean(id)
+  const [brand, setBrand] = useState(blank); const [errors, setErrors] = useState({}); const [saving, setSaving] = useState(false); const [slugEdited, setSlugEdited] = useState(false)
+  useEffect(() => { if (isEdit) getBrand(id).then((data) => { setBrand({ ...blank, ...data, image: null, imagePreview: data.logoUrl || '' }); setSlugEdited(true) }).catch((error) => setErrors({ api: error.response?.data?.message || 'Unable to load brand.' })) }, [id, isEdit])
+  const change = ({ target: { name, value } }) => { if (name === 'slug') setSlugEdited(true); setBrand((current) => ({ ...current, [name]: value, ...(name === 'name' && !slugEdited ? { slug: slugify(value) } : {}) })); setErrors({}) }
+  const chooseImage = ({ target }) => { const file = target.files?.[0]; if (!file) return; if (!file.type.startsWith('image/')) { setErrors({ image: 'Choose a valid image file.' }); return }; setBrand((current) => ({ ...current, image: file, imagePreview: URL.createObjectURL(file) })); setErrors({}) }
+  const save = async (event) => { event.preventDefault(); const next = {}; if (!brand.name.trim()) next.name = 'Brand name is required.'; if (!brand.slug.trim()) next.slug = 'Slug is required.'; if (!isEdit && !brand.image) next.image = 'Brand image is required.'; if (Object.keys(next).length) { setErrors(next); return }; setSaving(true); try { await (isEdit ? updateBrand(id, brand) : createBrand(brand)); navigate('/brands') } catch (error) { const body = error.response?.data; setErrors({ api: body?.errors?.map?.((item) => item.message || item.msg || JSON.stringify(item)).join(' ') || body?.message || 'Unable to save brand.' }) } finally { setSaving(false) } }
+  return <AdminLayout title={isEdit ? 'Edit Brand' : 'Add Brand'}><div className="brand-page"><div className="brand-crumb"><Link to="/dashboard">Dashboard</Link> / <Link to="/brands">Brands</Link> / {isEdit ? 'Edit Brand' : 'Add Brand'}</div><div className="brand-heading"><div><h2>{isEdit ? 'Edit Brand' : 'Add Brand'}</h2><span>Set the brand identity used in your product catalog.</span></div></div><form className="brand-form" onSubmit={save}><section><h3>Brand information</h3>{errors.api && <div className="brand-error">{errors.api}</div>}<label>Brand Name *<input name="name" value={brand.name} onChange={change} placeholder="Apple" />{errors.name && <small>{errors.name}</small>}</label><label>Slug *<input name="slug" value={brand.slug} onChange={change} placeholder="apple" />{errors.slug && <small>{errors.slug}</small>}</label><div className="form-field"><span>Brand Image *</span><div className="image-upload">{brand.imagePreview ? <><img src={brand.imagePreview} alt="Brand preview" /><button type="button" onClick={() => setBrand((current) => ({ ...current, image: null, imagePreview: '' }))}><X size={14} /> Remove image</button></> : <><ImagePlus size={28} /><strong>Upload brand image</strong><label className="upload-button"><Upload size={15} /> Choose file<input type="file" accept="image/*" onChange={chooseImage} /></label><small>PNG, JPG or WebP</small></>}</div>{errors.image && <small className="field-error">{errors.image}</small>}</div><label className="blog-toggle"><input type="checkbox" checked={brand.isActive} onChange={(event) => setBrand((current) => ({ ...current, isActive: event.target.checked }))} /><span><strong>Active brand</strong><small>Visible for product selection when enabled.</small></span></label><div className="brand-form-actions"><button type="button" onClick={() => navigate('/brands')}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Update Brand' : 'Save Brand'}</button></div></section><aside><span>BRAND PREVIEW</span>{brand.imagePreview ? <img src={brand.imagePreview} alt="Brand preview" /> : <div className="brand-preview-logo">{brand.name?.[0] || 'B'}</div>}<h3>{brand.name || 'Brand name'}</h3><code>{brand.slug || 'brand-slug'}</code><p>{brand.isActive ? 'Active brand' : 'Inactive brand'}</p></aside></form></div></AdminLayout>
 }
