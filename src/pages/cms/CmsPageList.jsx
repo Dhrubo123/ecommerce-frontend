@@ -1,0 +1,15 @@
+import { useEffect, useMemo, useState } from 'react'
+import { ExternalLink, FileText, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { deleteCmsPage, getCmsPages } from '../../services/cmsPageService'
+import './cms.css'
+
+export default function CmsPageList() {
+  const [pages, setPages] = useState([]); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(''); const [error, setError] = useState(''); const [message, setMessage] = useState('')
+  const load = async () => { setLoading(true); try { setPages(await getCmsPages()); setError('') } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to load CMS pages.') } finally { setLoading(false) } }
+  useEffect(() => { load() }, [])
+  const filtered = useMemo(() => { const term = search.trim().toLowerCase(); return term ? pages.filter((page) => `${page.title} ${page.slug}`.toLowerCase().includes(term)) : pages }, [pages, search])
+  const remove = async (page) => { if (!window.confirm(`Delete “${page.title}”?`)) return; try { await deleteCmsPage(page.id); setMessage('CMS page deleted.'); await load() } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to delete this page.') } }
+  return <AdminLayout title="CMS Pages"><div className="cms-page"><div className="cms-heading"><div><p>MARKETING & CONTENT</p><h2>CMS Pages</h2><span>Manage the policy and information pages customers see on your storefront.</span></div><Link className="cms-primary" to="/cms-pages/create"><Plus size={17} /> Add CMS Page</Link></div>{error && <div className="cms-error">{error}</div>}{message && <div className="cms-success">{message}</div>}<section className="cms-card"><div className="cms-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search pages by title or slug" /></label><span>{pages.length} pages</span></div><div className="cms-table"><table><thead><tr><th>Page</th><th>Slug / Public URL</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead><tbody>{loading ? <tr><td colSpan="5">Loading CMS pages...</td></tr> : filtered.length === 0 ? <tr><td colSpan="5">No CMS pages found.</td></tr> : filtered.map((page) => <tr key={page.id}><td><span className="cms-file-icon"><FileText size={17} /></span><strong>{page.title}</strong></td><td><code>/{page.slug}</code></td><td><span className={`cms-status ${page.isActive ? 'active' : 'inactive'}`}>{page.isActive ? 'Active' : 'Inactive'}</span></td><td>{page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : '—'}</td><td><div className="cms-actions"><a href={`/cms/pages/${page.slug}`} target="_blank" rel="noreferrer" title="Open public page"><ExternalLink size={15} /></a><Link to={`/cms-pages/${page.id}/edit`} title="Edit page"><Pencil size={15} /></Link><button type="button" onClick={() => remove(page)} title="Delete page"><Trash2 size={15} /></button></div></td></tr>)}</tbody></table></div></section></div></AdminLayout>
+}

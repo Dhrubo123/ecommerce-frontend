@@ -5,7 +5,7 @@ import {
   CalendarClock, Car, ChevronDown, ChevronLeft, ChevronRight, CircleUserRound,
   ClipboardList, Factory, FileText, Headphones, Landmark,
   Languages, LayoutDashboard, LogOut, Mail, MapPin, Megaphone, Menu, Monitor,
-  Package, Plug, Receipt, RefreshCcw, RotateCcw, Settings, ShieldCheck,
+  Package, Palette, Plug, Receipt, RefreshCcw, RotateCcw, Settings, ShieldCheck,
   ShoppingCart, SlidersHorizontal, Store, Tags, TrendingUp, Truck,
   Undo2, UserCog, Users, Wallet, X,
 } from 'lucide-react'
@@ -36,7 +36,7 @@ const menuSections = [
   ] },
   { label: 'Marketing & Content', items: [
     { label: 'Promotions', icon: Megaphone, children: ['Flash Deals', 'Banners', 'Ad Campaigns', 'Coupons'] },
-    { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText, children: ['All Blogs', 'Add Blog'] }, { label: 'CMS Pages', icon: FileText },
+    { label: 'Push Notifications', icon: Bell }, { label: 'Blog', icon: FileText, children: ['All Blogs', 'Add Blog'] }, { label: 'CMS Pages', icon: FileText, children: ['All CMS Pages', 'Add CMS Page', 'CMS Menus', 'Add Menu Item', 'Footer Settings', 'Home Page Sections'] },
   ] },
   { label: 'People & Support', items: [
     { label: 'Customers', icon: Users }, { label: 'Employees', icon: UserCog }, { label: 'Drivers', icon: Car }, { label: 'Support Tickets', icon: Headphones }, { label: 'Contact Us', icon: Mail },
@@ -47,7 +47,7 @@ const menuSections = [
   ] },
   { label: 'System Settings', items: [
     { label: 'Roles & Permissions', icon: ShieldCheck }, { label: 'Languages', icon: Languages }, { label: 'Address Management', icon: MapPin },
-    { label: 'Business Settings', icon: Settings }, { label: 'Third-Party Integrations', icon: Plug }, { label: 'Import / Export', icon: ArrowLeftRight }, { label: 'Add-ons', icon: Boxes },
+    { label: 'Business Settings', icon: Settings }, { label: 'Themes', icon: Palette, children: ['Theme Management', 'Create Theme'] }, { label: 'Third-Party Integrations', icon: Plug }, { label: 'Import / Export', icon: ArrowLeftRight }, { label: 'Add-ons', icon: Boxes },
   ] },
 ]
 
@@ -63,6 +63,14 @@ routes['Credit Voucher'] = '/credit-vouchers/create'
 routes['Debit Voucher'] = '/debit-vouchers/create'
 routes['Contra Voucher'] = '/contra-vouchers/create'
 routes['Journal Voucher'] = '/journal-vouchers/create'
+routes['Theme Management'] = '/themes'
+routes['Create Theme'] = '/themes/create'
+routes['All CMS Pages'] = '/cms-pages'
+routes['Add CMS Page'] = '/cms-pages/create'
+routes['Footer Settings'] = '/cms-footer'
+routes['Home Page Sections'] = '/cms-sections'
+routes['CMS Menus'] = '/cms-menus'
+routes['Add Menu Item'] = '/cms-menus/create'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
@@ -91,7 +99,7 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
             <div className="nav-items">{section.items.map((item) => {
               const Icon = item.icon
               const isOpenMenu = openMenus[item.label]
-              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Promotions' ? location.pathname.startsWith('/flash-sales') || location.pathname.startsWith('/banners') || location.pathname.startsWith('/ad-campaigns') || location.pathname.startsWith('/promo-codes') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
+              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Promotions' ? location.pathname.startsWith('/flash-sales') || location.pathname.startsWith('/banners') || location.pathname.startsWith('/ad-campaigns') || location.pathname.startsWith('/promo-codes') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : item.label === 'Themes' ? location.pathname.startsWith('/themes') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
               return <div className="nav-item-group" key={item.label}>
                 {item.children ? (
                   <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={isOpenMenu} onClick={() => toggleMenu(item.label)}>

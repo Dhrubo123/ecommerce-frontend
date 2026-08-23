@@ -64,6 +64,14 @@ import CreditVoucherForm from './pages/accounts/CreditVoucherForm'
 import DebitVoucherForm from './pages/accounts/DebitVoucherForm'
 import ContraVoucherForm from './pages/accounts/ContraVoucherForm'
 import JournalVoucherForm from './pages/accounts/JournalVoucherForm'
+import ThemeList from './pages/themes/ThemeList'
+import ThemeForm from './pages/themes/ThemeForm'
+import CmsPageList from './pages/cms/CmsPageList'
+import CmsPageForm from './pages/cms/CmsPageForm'
+import CmsMenuList from './pages/cms/CmsMenuList'
+import CmsMenuForm from './pages/cms/CmsMenuForm'
+import CmsFooterSettings from './pages/cms/CmsFooterSettings'
+import CmsSectionManager from './pages/cms/CmsSectionManager'
 import './App.css'
 import './form-controls.css'
 
@@ -154,6 +162,17 @@ function App() {
         <Route path="/debit-vouchers/create" element={<DebitVoucherForm />} />
         <Route path="/contra-vouchers/create" element={<ContraVoucherForm />} />
         <Route path="/journal-vouchers/create" element={<JournalVoucherForm />} />
+        <Route path="/themes" element={<ThemeList />} />
+        <Route path="/themes/create" element={<ThemeForm />} />
+        <Route path="/themes/:id/edit" element={<ThemeForm />} />
+        <Route path="/cms-pages" element={<CmsPageList />} />
+        <Route path="/cms-pages/create" element={<CmsPageForm />} />
+        <Route path="/cms-pages/:id/edit" element={<CmsPageForm />} />
+        <Route path="/cms-menus" element={<CmsMenuList />} />
+        <Route path="/cms-menus/create" element={<CmsMenuForm />} />
+        <Route path="/cms-menus/:id/edit" element={<CmsMenuForm />} />
+        <Route path="/cms-footer" element={<CmsFooterSettings />} />
+        <Route path="/cms-sections" element={<CmsSectionManager />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
