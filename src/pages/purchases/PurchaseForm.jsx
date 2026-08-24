@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { createPurchase, getPurchase, updatePurchase } from '../../services/purchaseService'
@@ -6,67 +7,28 @@ import { getSuppliers } from '../../services/supplierService'
 import { getWarehouses } from '../../services/warehouseService'
 import { getProducts } from '../../services/productService'
 import '../brands/brands.css'
+import './purchase.css'
 
-const blank = { supplierId: '', warehouseId: '', purchaseDate: new Date().toISOString().slice(0, 10), invoiceNumber: '', notes: '', discount: 0, shippingCost: 0, paidAmount: 0, items: [{ productId: '', quantity: 1, unitPrice: 0, discount: 0 }] }
-
-const asForm = (purchase) => ({
-  ...blank,
-  ...purchase,
-  supplierId: purchase.supplierId ?? purchase.supplier?.id ?? '',
-  warehouseId: purchase.warehouseId ?? purchase.warehouse?.id ?? '',
-  purchaseDate: String(purchase.purchaseDate ?? blank.purchaseDate).slice(0, 10),
-  items: (purchase.items?.length ? purchase.items : blank.items).map((item) => ({ productId: item.productId ?? item.product?.id ?? '', quantity: item.quantity ?? 1, unitPrice: item.unitPrice ?? item.price ?? 0, discount: item.discount ?? 0 })),
-})
+const emptyItem = { productId: '', quantity: 1, unitPrice: 0, discount: 0 }
+const blank = { supplierId: '', warehouseId: '', purchaseDate: new Date().toISOString().slice(0, 10), invoiceNumber: '', notes: '', discount: 0, shippingCost: 0, paidAmount: 0, paymentMethod: 'cash', chequeNumber: '', items: [emptyItem] }
+const number = (value) => Number(value) || 0
+const itemTotal = (item) => Math.max(0, number(item.quantity) * number(item.unitPrice) - number(item.discount))
+const asForm = (purchase) => ({ ...blank, ...purchase, supplierId: purchase.supplierId ?? purchase.supplier?.id ?? '', warehouseId: purchase.warehouseId ?? purchase.warehouse?.id ?? '', purchaseDate: String(purchase.purchaseDate ?? blank.purchaseDate).slice(0, 10), paymentMethod: purchase.paymentMethod ?? 'cash', chequeNumber: purchase.chequeNumber ?? '', items: (purchase.items?.length ? purchase.items : [emptyItem]).map((item) => ({ productId: item.productId ?? item.product?.id ?? '', quantity: item.quantity ?? 1, unitPrice: item.unitPrice ?? item.price ?? 0, discount: item.discount ?? 0 })) })
 
 export default function PurchaseForm() {
-  const navigate = useNavigate()
-  const { id } = useParams()
-  const isEdit = Boolean(id)
-  const [form, setForm] = useState(blank)
-  const [data, setData] = useState({ suppliers: [], warehouses: [], products: [] })
-  const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
+  const navigate = useNavigate(); const { id } = useParams(); const isEdit = Boolean(id)
+  const [form, setForm] = useState(blank); const [data, setData] = useState({ suppliers: [], warehouses: [], products: [] }); const [error, setError] = useState(''); const [saving, setSaving] = useState(false)
+  const totals = useMemo(() => { const quantity = form.items.reduce((sum, item) => sum + number(item.quantity), 0); const subtotal = form.items.reduce((sum, item) => sum + itemTotal(item), 0); const grandTotal = Math.max(0, subtotal - number(form.discount) + number(form.shippingCost)); return { quantity, subtotal, grandTotal, dueAmount: Math.max(0, grandTotal - number(form.paidAmount)) } }, [form])
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setError('')
-        const [suppliers, warehouses, products, purchase] = await Promise.all([getSuppliers(), getWarehouses(), getProducts(), isEdit ? getPurchase(id) : Promise.resolve(null)])
-        setData({ suppliers, warehouses, products })
-        if (purchase) setForm(asForm(purchase))
-      } catch (err) { setError(err.response?.data?.message || 'Unable to load purchase details.') }
-    }
-    load()
-  }, [id, isEdit])
-
+  useEffect(() => { const load = async () => { try { setError(''); const [suppliers, warehouses, products, purchase] = await Promise.all([getSuppliers(), getWarehouses(), getProducts(), isEdit ? getPurchase(id) : Promise.resolve(null)]); setData({ suppliers, warehouses, products }); if (purchase) setForm(asForm(purchase)) } catch (err) { setError(err.response?.data?.message || 'Unable to load purchase details.') } }; load() }, [id, isEdit])
   const field = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
-  const changeItem = (index, key, value) => setForm((current) => ({ ...current, items: current.items.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: key === 'productId' ? value : Number(value) } : row) }))
-  const getPayload = () => ({
-    ...form,
-    supplierId: Number(form.supplierId), warehouseId: Number(form.warehouseId), discount: Number(form.discount), shippingCost: Number(form.shippingCost), paidAmount: Number(form.paidAmount),
-    items: form.items.map((row) => ({ ...row, productId: Number(row.productId), quantity: Number(row.quantity), unitPrice: Number(row.unitPrice), discount: Number(row.discount) })),
-  })
-  const save = async (event) => {
-    event.preventDefault()
-    if (!form.supplierId || !form.warehouseId || form.items.some((row) => !row.productId)) return setError('Select a supplier, warehouse, and product.')
-    try {
-      setSaving(true); setError('')
-      if (isEdit) await updatePurchase(id, getPayload()); else await createPurchase(getPayload())
-      navigate('/purchases')
-    } catch (err) { setError(err.response?.data?.message || `Unable to ${isEdit ? 'update' : 'create'} purchase.`) } finally { setSaving(false) }
-  }
+  const changeItem = (index, key, value) => setForm((current) => ({ ...current, items: current.items.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: key === 'productId' ? value : number(value) } : row) }))
+  const setProduct = (index, productId) => { const product = data.products.find((item) => String(item.id) === String(productId)); setForm((current) => ({ ...current, items: current.items.map((row, rowIndex) => rowIndex === index ? { ...row, productId, unitPrice: number(product?.buyingPrice ?? product?.purchasePrice ?? row.unitPrice) } : row) })) }
+  const removeItem = (index) => setForm((current) => current.items.length === 1 ? current : { ...current, items: current.items.filter((_, rowIndex) => rowIndex !== index) })
+  const getPayload = () => ({ supplierId: number(form.supplierId), warehouseId: number(form.warehouseId), purchaseDate: form.purchaseDate, invoiceNumber: form.invoiceNumber, notes: form.notes, totalAmount: totals.subtotal, discount: number(form.discount), shippingCost: number(form.shippingCost), grandTotal: totals.grandTotal, paidAmount: number(form.paidAmount), dueAmount: totals.dueAmount, paymentMethod: form.paymentMethod, ...(form.paymentMethod === 'cheque' && form.chequeNumber ? { chequeNumber: form.chequeNumber } : {}), items: form.items.map((row) => ({ productId: number(row.productId), quantity: number(row.quantity), unitPrice: number(row.unitPrice), discount: number(row.discount), lineTotal: itemTotal(row) })) })
+  const save = async (event) => { event.preventDefault(); if (!form.supplierId || !form.warehouseId || form.items.some((row) => !row.productId)) return setError('Select a supplier, warehouse, and product.'); if (number(form.paidAmount) > totals.grandTotal) return setError('Paid amount cannot exceed the grand total.'); try { setSaving(true); setError(''); if (isEdit) await updatePurchase(id, getPayload()); else await createPurchase(getPayload()); navigate('/purchases') } catch (err) { setError(err.response?.data?.message || `Unable to ${isEdit ? 'update' : 'create'} purchase.`) } finally { setSaving(false) } }
   const select = (name, value, options, label) => <label>{label}<select name={name} value={value} onChange={field}><option value="">Select {label}</option>{options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>
+  const money = (value) => `৳${number(value).toFixed(2)}`
 
-  return <AdminLayout title={isEdit ? 'Edit Purchase' : 'Add Purchase'}>
-    <div className="brand-page"><div className="brand-heading"><div><p>INVENTORY & PURCHASE</p><h2>{isEdit ? 'Edit Purchase' : 'Add Purchase'}</h2><span>{isEdit ? 'Update an incoming supplier stock record.' : 'Record incoming supplier stock.'}</span></div></div>
-      <form className="brand-form" onSubmit={save}><section><h3>Purchase information</h3>{error && <div className="brand-error">{error}</div>}
-        {select('supplierId', form.supplierId, data.suppliers, 'Supplier')}{select('warehouseId', form.warehouseId, data.warehouses, 'Warehouse')}
-        <label>Purchase Date<input type="date" name="purchaseDate" value={form.purchaseDate} onChange={field} /></label><label>Invoice Number<input name="invoiceNumber" value={form.invoiceNumber} onChange={field} /></label><label>Notes<textarea name="notes" value={form.notes} onChange={field} /></label>
-        <div className="three">{['discount', 'shippingCost', 'paidAmount'].map((key) => <label key={key}>{key}<input type="number" name={key} value={form[key]} onChange={field} /></label>)}</div>
-        <h3>Items</h3>{form.items.map((row, index) => <div className="three" key={index}><label>Product<select value={row.productId} onChange={(event) => changeItem(index, 'productId', event.target.value)}><option value="">Select Product</option>{data.products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}</select></label>{['quantity', 'unitPrice', 'discount'].map((key) => <label key={key}>{key}<input type="number" value={row[key]} onChange={(event) => changeItem(index, key, event.target.value)} /></label>)}</div>)}
-        <button type="button" onClick={() => setForm((current) => ({ ...current, items: [...current.items, { productId: '', quantity: 1, unitPrice: 0, discount: 0 }] }))}>Add item</button>
-        <div className="brand-form-actions"><button type="button" onClick={() => navigate('/purchases')}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Update Purchase' : 'Save Purchase'}</button></div>
-      </section></form>
-    </div>
-  </AdminLayout>
+  return <AdminLayout title={isEdit ? 'Edit Purchase' : 'Add Purchase'}><div className="brand-page"><div className="brand-heading"><div><p>INVENTORY & PURCHASE</p><h2>{isEdit ? 'Edit Purchase' : 'Add Purchase'}</h2><span>{isEdit ? 'Update an incoming supplier stock record.' : 'Record supplier stock with live purchase totals.'}</span></div></div><form className="brand-form" onSubmit={save}><section><h3>Purchase information</h3>{error && <div className="brand-error">{error}</div>}{select('supplierId', form.supplierId, data.suppliers, 'Supplier')}{select('warehouseId', form.warehouseId, data.warehouses, 'Warehouse')}<div className="three"><label>Purchase Date<input type="date" name="purchaseDate" value={form.purchaseDate} onChange={field} /></label><label>Invoice Number<input name="invoiceNumber" value={form.invoiceNumber} onChange={field} /></label><label>Payment Method<select name="paymentMethod" value={form.paymentMethod} onChange={field}><option value="cash">Cash</option><option value="bank">Bank</option><option value="cheque">Cheque</option></select></label></div>{form.paymentMethod === 'cheque' && <label>Cheque Number<input name="chequeNumber" value={form.chequeNumber} onChange={field} /></label>}<label>Notes<textarea name="notes" value={form.notes} onChange={field} /></label><h3>Purchased items</h3><div className="purchase-item-head"><span>Product</span><span>Quantity</span><span>Unit Price</span><span>Discount</span><span>Total</span><span /></div>{form.items.map((row, index) => <div className="purchase-item-row" key={index}><select value={row.productId} onChange={(event) => setProduct(index, event.target.value)}><option value="">Select Product</option>{data.products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}</select><input aria-label="Quantity" type="number" min="1" value={row.quantity} onChange={(event) => changeItem(index, 'quantity', event.target.value)} /><input aria-label="Unit price" type="number" min="0" value={row.unitPrice} onChange={(event) => changeItem(index, 'unitPrice', event.target.value)} /><input aria-label="Item discount" type="number" min="0" value={row.discount} onChange={(event) => changeItem(index, 'discount', event.target.value)} /><strong>{money(itemTotal(row))}</strong><button type="button" className="purchase-remove" aria-label="Remove item" disabled={form.items.length === 1} onClick={() => removeItem(index)}><Trash2 size={15} /></button></div>)}<button type="button" className="purchase-add-item" onClick={() => setForm((current) => ({ ...current, items: [...current.items, { ...emptyItem }] }))}>+ Add another product</button><div className="three"><label>Purchase Discount<input type="number" min="0" name="discount" value={form.discount} onChange={field} /></label><label>Shipping Cost<input type="number" min="0" name="shippingCost" value={form.shippingCost} onChange={field} /></label><label>Paid Amount<input type="number" min="0" name="paidAmount" value={form.paidAmount} onChange={field} /></label></div><div className="brand-form-actions"><button type="button" onClick={() => navigate('/purchases')}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Update Purchase' : 'Save Purchase'}</button></div></section><aside className="purchase-summary"><span>LIVE CALCULATION</span><h3>Purchase Summary</h3><div><span>Products</span><strong>{form.items.length}</strong></div><div><span>Total units</span><strong>{totals.quantity}</strong></div><div><span>Items subtotal</span><strong>{money(totals.subtotal)}</strong></div><div><span>Purchase discount</span><strong>- {money(form.discount)}</strong></div><div><span>Shipping cost</span><strong>+ {money(form.shippingCost)}</strong></div><div className="purchase-grand"><span>Grand total</span><strong>{money(totals.grandTotal)}</strong></div><div><span>Paid amount</span><strong>{money(form.paidAmount)}</strong></div><div className="purchase-due"><span>Due amount</span><strong>{money(totals.dueAmount)}</strong></div></aside></form></div></AdminLayout>
 }
