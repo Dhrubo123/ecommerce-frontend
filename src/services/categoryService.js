@@ -1,6 +1,7 @@
 import api from './api'
 
 const unwrap = (response) => response.data?.data ?? response.data
+const asBoolean = (value, fallback = true) => value === undefined || value === null ? fallback : value === true || value === 'true' || value === 1 || value === '1'
 const toUi = (category) => ({
   ...category,
   image: category.image ?? category.imageUrl ?? '',
@@ -15,7 +16,7 @@ const toPayload = (category) => {
   const payload = new FormData()
   payload.append('name', String(category.name ?? '').trim())
   payload.append('slug', String(category.slug ?? '').trim())
-  payload.append('isActive', String(category.isActive ?? category.status === 'active'))
+  payload.append('isActive', asBoolean(category.isActive, category.status === 'active') ? 'true' : 'false')
   payload.append('order', String(Number(category.order ?? category.sortOrder ?? 0)))
   payload.append('description', String(category.description ?? '').trim())
   if (category.image instanceof File) payload.append('image', category.image)

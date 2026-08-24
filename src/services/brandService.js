@@ -1,8 +1,9 @@
 import api from './api'
 
 const unwrap = (response) => response.data?.data ?? response.data
+const asBoolean = (value, fallback = true) => value === undefined || value === null ? fallback : value === true || value === 'true' || value === 1 || value === '1'
 const toUi = (brand) => ({ ...brand, logoUrl: brand.image ?? brand.logoUrl ?? brand.logo ?? '', status: (brand.isActive ?? brand.is_active ?? brand.status === 'active') ? 'active' : 'inactive', isActive: Boolean(brand.isActive ?? brand.is_active ?? brand.status === 'active') })
-const toPayload = (brand) => { const payload = new FormData(); payload.append('name', String(brand.name ?? '').trim()); payload.append('slug', String(brand.slug ?? '').trim()); payload.append('isActive', String(brand.isActive ?? brand.status === 'active')); if (brand.image instanceof File) payload.append('image', brand.image); return payload }
+const toPayload = (brand) => { const payload = new FormData(); payload.append('name', String(brand.name ?? '').trim()); payload.append('slug', String(brand.slug ?? '').trim()); payload.append('isActive', asBoolean(brand.isActive, brand.status === 'active') ? 'true' : 'false'); if (brand.image instanceof File) payload.append('image', brand.image); return payload }
 
 // Live Brand API: GET/POST /admin/brands, GET/PATCH/DELETE /admin/brands/:id
 export async function getBrands(params = {}) { const data = unwrap(await api.get('/admin/brands', { params })); return (Array.isArray(data) ? data : (data.brands ?? data.items ?? [])).map(toUi) }
