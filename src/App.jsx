@@ -64,6 +64,7 @@ import CreditVoucherForm from './pages/accounts/CreditVoucherForm'
 import DebitVoucherForm from './pages/accounts/DebitVoucherForm'
 import ContraVoucherForm from './pages/accounts/ContraVoucherForm'
 import JournalVoucherForm from './pages/accounts/JournalVoucherForm'
+import CashAdjustmentForm from './pages/accounts/CashAdjustmentForm'
 import ThemeList from './pages/themes/ThemeList'
 import ThemeForm from './pages/themes/ThemeForm'
 import CmsPageList from './pages/cms/CmsPageList'
@@ -163,6 +164,7 @@ function App() {
         <Route path="/debit-vouchers/create" element={<DebitVoucherForm />} />
         <Route path="/contra-vouchers/create" element={<ContraVoucherForm />} />
         <Route path="/journal-vouchers/create" element={<JournalVoucherForm />} />
+        <Route path="/cash-adjustments/create" element={<CashAdjustmentForm />} />
         <Route path="/themes" element={<ThemeList />} />
         <Route path="/themes/create" element={<ThemeForm />} />
         <Route path="/themes/:id/edit" element={<ThemeForm />} />
