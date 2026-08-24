@@ -30,7 +30,9 @@ const toSubcategoryPayload = (data) => {
   payload.append('name', data.name.trim())
   payload.append('slug', data.slug.trim())
   payload.append('description', data.description?.trim() ?? '')
-  payload.append('isActive', String(data.isActive ?? data.status === 'active'))
+  // The API receives multipart fields as text and expects "true" or "false".
+  const isActive = data.isActive ?? data.status === 'active'
+  payload.append('isActive', isActive ? 'true' : 'false')
   if (data.image instanceof File) payload.append('image', data.image)
 
   return payload
