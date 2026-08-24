@@ -2,6 +2,9 @@ import api from './api'
 const unwrap = (response) => response.data?.data ?? response.data
 const toUi = (warehouse) => ({
   ...warehouse,
+  // The API has returned both `id` and `warehouseId` in different modules.
+  // Keep one predictable ID for every select control in the admin app.
+  id: warehouse.id ?? warehouse.warehouseId ?? warehouse.warehouse_id ?? '',
   name: warehouse.name ?? warehouse.warehouseName ?? '',
   code: warehouse.code ?? warehouse.warehouseCode ?? '',
   phone: warehouse.phone ?? '',

@@ -16,5 +16,9 @@ export const createEcommerceOrder = async (data) => unwrap(await api.post('/admi
 export const getEcommerceOrder = async (id) => unwrap(await api.get(`/admin/orders/${id}`))
 export const updateOrderStatus = async (id, status) => unwrap(await api.patch(`/admin/orders/${id}/status`, { status }))
 export const updateOrderPaymentStatus = async (id, paymentStatus) => unwrap(await api.patch(`/admin/orders/${id}/payment-status`, { paymentStatus }))
-// Confirm an order by allocating its items to warehouses.
-export const confirmOrder = async (id, allocations) => unwrap(await api.patch(`/admin/orders/${id}/confirm`, { allocations }))
+// The current backend validation requires a root `warehouseId` for confirmation.
+// `allocations` is retained for backends that allocate stock per order item.
+export const confirmOrder = async (id, allocations) => {
+  const warehouseId = Number(allocations[0]?.warehouseId)
+  return unwrap(await api.patch(`/admin/orders/${id}/confirm`, { warehouseId, allocations }))
+}
