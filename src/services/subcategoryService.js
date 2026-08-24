@@ -6,18 +6,31 @@ import api from './api'
 
 const unwrap = (response) => response.data?.data ?? response.data
 const asBoolean = (value, fallback = true) => value === undefined || value === null ? fallback : value === true || value === 'true' || value === 1 || value === '1'
+const normalizeIds = (value) => {
+  if (Array.isArray(value)) return value.map((item) => Number(item?.id ?? item)).filter(Number.isFinite)
+  if (typeof value === 'string') {
+    try { return normalizeIds(JSON.parse(value)) } catch { return value.split(',').map(Number).filter(Number.isFinite) }
+  }
+  const id = Number(value?.id ?? value)
+  return Number.isFinite(id) ? [id] : []
+}
 
-const toSubcategoryUi = (subcategory) => ({
+const toSubcategoryUi = (subcategory) => {
+  const categoryIds = normalizeIds(
+    subcategory.categoryIds ?? subcategory.category_ids ?? subcategory.categories ?? subcategory.categoryId ?? subcategory.category_id ?? subcategory.category?.id,
+  )
+  return {
   ...subcategory,
   image: subcategory.image ?? '',
   status: (subcategory.isActive ?? (subcategory.status === 'active')) ? 'active' : 'inactive',
-  categoryId: subcategory.categoryId ?? subcategory.categoryIds?.[0] ?? subcategory.category?.id ?? subcategory.categories?.[0]?.id ?? '',
-  categoryIds: subcategory.categoryIds ?? (subcategory.categoryId ? [subcategory.categoryId] : []),
-  categoryName: subcategory.categoryName ?? subcategory.category?.name ?? subcategory.categories?.[0]?.name ?? '',
+  categoryId: categoryIds[0] ?? '',
+  categoryIds,
+  categoryName: subcategory.categoryName ?? subcategory.category_name ?? subcategory.category?.name ?? subcategory.categories?.[0]?.name ?? '',
   description: subcategory.description ?? '',
   sortOrder: subcategory.sortOrder ?? 0,
   productCount: subcategory.productCount ?? 0,
-})
+  }
+}
 
 // Exact multipart payload accepted by the backend:
 // categoryIds, name, slug, image, description, isActive.
