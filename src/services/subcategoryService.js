@@ -5,6 +5,7 @@ import api from './api'
 // PATCH /admin/subcategories/:id | DELETE /admin/subcategories/:id
 
 const unwrap = (response) => response.data?.data ?? response.data
+const asBoolean = (value, fallback = true) => value === undefined || value === null ? fallback : value === true || value === 'true' || value === 1 || value === '1'
 
 const toSubcategoryUi = (subcategory) => ({
   ...subcategory,
@@ -38,6 +39,14 @@ const toSubcategoryPayload = (data) => {
   return payload
 }
 
+const toSubcategoryUpdatePayload = (data) => ({
+  categoryIds: (data.categoryIds?.length ? data.categoryIds : [data.categoryId]).map(Number),
+  name: data.name.trim(),
+  slug: data.slug.trim(),
+  description: data.description?.trim() ?? '',
+  isActive: asBoolean(data.isActive, data.status === 'active'),
+})
+
 export async function getSubcategories(params = {}) {
   const response = await api.get('/admin/subcategories', { params })
   const data = unwrap(response)
@@ -56,7 +65,7 @@ export async function createSubcategory(data) {
 }
 
 export async function updateSubcategory(id, data) {
-  const response = await api.patch(`/admin/subcategories/${id}`, toSubcategoryPayload(data))
+  const response = await api.patch(`/admin/subcategories/${id}`, toSubcategoryUpdatePayload(data))
   return toSubcategoryUi(unwrap(response))
 }
 

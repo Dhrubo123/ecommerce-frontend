@@ -71,12 +71,23 @@ export default function SubcategoryForm() {
     setErrors((current) => ({ ...current, image: '' }))
   }
 
+  const apiMessage = (error) => {
+    const body = error.response?.data
+    const details = body?.errors
+      ?.map((item) => item.message || item.msg || `${item.path?.join?.('.') || item.field || 'Field'} is invalid`)
+      .filter(Boolean)
+      .join(' ')
+    return details || body?.message || 'Unable to save subcategory.'
+  }
+
   const submit = async (event) => {
     event.preventDefault()
     const next = {}
     if (!form.categoryId) next.categoryId = 'Parent category is required.'
     if (!form.name.trim()) next.name = 'Subcategory name is required.'
     if (!form.slug.trim()) next.slug = 'Slug is required.'
+    // The API accepts a new file on update when the image is being changed.
+    // An existing preview is already stored by the backend and does not need re-uploading.
     if (!isEdit && !form.image) next.image = 'Subcategory image is required.'
     if (Object.keys(next).length) {
       setErrors(next)
@@ -91,7 +102,7 @@ export default function SubcategoryForm() {
       setToast(`Subcategory ${isEdit ? 'updated' : 'created'} successfully`)
       window.setTimeout(() => navigate('/subcategories'), 650)
     } catch (error) {
-      setErrors({ api: error.response?.data?.message || 'Unable to save subcategory.' })
+      setErrors({ api: apiMessage(error) })
     } finally {
       setSaving(false)
     }
@@ -148,6 +159,10 @@ export default function SubcategoryForm() {
                 {form.imagePreview ? (
                   <>
                     <img src={form.imagePreview} alt="Subcategory preview" />
+                    <label className="upload-button">
+                      <Upload size={15} /> Replace image
+                      <input type="file" accept="image/*" onChange={chooseImage} />
+                    </label>
                     <button type="button" onClick={() => setForm((current) => ({ ...current, image: null, imagePreview: '' }))}>
                       <X size={14} /> Remove image
                     </button>
