@@ -108,6 +108,7 @@ function App() {
         <Route path="/warehouses/create" element={<WarehouseForm />} />
         <Route path="/warehouses/:id/edit" element={<WarehouseForm />} />
         <Route path="/purchases/create" element={<PurchaseForm />} />
+        <Route path="/purchases/:id/edit" element={<PurchaseForm />} />
         <Route path="/purchases" element={<PurchaseList />} />
         <Route path="/purchase-returns/create" element={<PurchaseReturnForm />} />
         <Route path="/customers" element={<CustomerList />} />
