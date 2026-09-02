@@ -73,12 +73,14 @@ import CmsMenuList from './pages/cms/CmsMenuList'
 import CmsMenuForm from './pages/cms/CmsMenuForm'
 import CmsFooterSettings from './pages/cms/CmsFooterSettings'
 import CmsSectionManager from './pages/cms/CmsSectionManager'
+import AdminLayout from './components/layout/AdminLayout'
 import './App.css'
 import './form-controls.css'
 
 function App() {
   return (
     <BrowserRouter>
+      <AdminLayout>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
@@ -178,6 +180,7 @@ function App() {
         <Route path="/cms-sections" element={<CmsSectionManager />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </AdminLayout>
     </BrowserRouter>
   )
 }
