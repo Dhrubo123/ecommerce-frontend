@@ -31,13 +31,13 @@ import StockAdjustmentForm from './pages/warehouses/StockAdjustmentForm'
 import StockAdjustmentList from './pages/warehouses/StockAdjustmentList'
 import PosSaleForm from './pages/pos/PosSaleForm'
 import PosSaleList from './pages/pos/PosSaleList'
+import PosDraftList from './pages/pos/PosDraftList'
 import EmployeeList from './pages/employees/EmployeeList'
 import EmployeeForm from './pages/employees/EmployeeForm'
 import StockReportList from './pages/warehouses/StockReportList'
 import WarehouseTransferForm from './pages/warehouses/WarehouseTransferForm'
 import WarehouseTransferList from './pages/warehouses/WarehouseTransferList'
 import EcommerceOrderList from './pages/orders/EcommerceOrderList'
-import EcommerceOrderForm from './pages/orders/EcommerceOrderForm'
 import EcommerceOrderView from './pages/orders/EcommerceOrderView'
 import ContactUs from './pages/contact/ContactUs'
 import BlogList from './pages/blogs/BlogList'
@@ -123,6 +123,7 @@ function App() {
         <Route path="/stock-adjustments" element={<StockAdjustmentList />} />
         <Route path="/pos-sales/create" element={<PosSaleForm />} />
         <Route path="/pos-sales" element={<PosSaleList />} />
+        <Route path="/pos-sales/drafts" element={<PosDraftList />} />
         <Route path="/employees" element={<EmployeeList />} />
         <Route path="/employees/create" element={<EmployeeForm />} />
         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
@@ -130,10 +131,8 @@ function App() {
         <Route path="/warehouse-transfers" element={<WarehouseTransferList />} />
         <Route path="/warehouse-transfers/create" element={<WarehouseTransferForm />} />
         <Route path="/orders" element={<EcommerceOrderList />} />
-        <Route path="/orders/create" element={<EcommerceOrderForm />} />
         <Route path="/orders/:id" element={<EcommerceOrderView />} />
         <Route path="/ecommerce-orders" element={<EcommerceOrderList />} />
-        <Route path="/ecommerce-orders/create" element={<EcommerceOrderForm />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/blogs" element={<BlogList />} />
         <Route path="/blogs/create" element={<BlogForm />} />

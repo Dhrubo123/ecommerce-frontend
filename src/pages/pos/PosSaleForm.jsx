@@ -5,8 +5,9 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import { getBrands } from '../../services/brandService'
 import { getCategories } from '../../services/categoryService'
 import { getCustomers } from '../../services/customerService'
-import { createPosSale } from '../../services/posSaleService'
+import { createPosDraft, createPosSale } from '../../services/posSaleService'
 import { getProducts } from '../../services/productService'
+import { getStockReports } from '../../services/stockReportService'
 import { getWarehouses } from '../../services/warehouseService'
 import './pos.css'
 
@@ -19,6 +20,7 @@ const getImage = (product) => {
 }
 const priceOf = (product) => Number(product.sellingPrice ?? product.salePrice ?? product.price ?? 0)
 const stockOf = (product) => Number(product.stockQuantity ?? product.stock ?? 0)
+const warehouseStockOf = (report) => Number(report?.availableQuantity ?? report?.availableStock ?? report?.stockQuantity ?? report?.quantity ?? report?.stock ?? 0)
 const money = (value) => Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const posDraftKey = 'ecommerce-admin:pos-sale-draft'
 const getDraft = () => { try { return JSON.parse(sessionStorage.getItem(posDraftKey) || 'null') || {} } catch { return {} } }
@@ -33,12 +35,40 @@ export default function PosSaleForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [stockByProduct, setStockByProduct] = useState({})
+  const [loadingWarehouseStock, setLoadingWarehouseStock] = useState(false)
+
+  useEffect(() => {
+    if (form.paymentMethod !== 'cash') setForm((current) => ({ ...current, paymentMethod: 'cash' }))
+  }, [form.paymentMethod])
 
   useEffect(() => {
     Promise.all([getWarehouses(), getCustomers(), getProducts(), getCategories(), getBrands()]).then(([warehouses, customers, products, categories, brands]) => {
       setData({ warehouses, customers, products, categories, brands })
     }).catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load POS products and options.')).finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!form.warehouseId || data.products.length === 0) {
+      setStockByProduct({})
+      return
+    }
+
+    let cancelled = false
+    setLoadingWarehouseStock(true)
+    Promise.all(data.products.map(async (product) => {
+      const reports = await getStockReports({ warehouseId: Number(form.warehouseId), productId: Number(product.id) })
+      const report = Array.isArray(reports) ? reports[0] : reports
+      return [product.id, warehouseStockOf(report)]
+    })).then((entries) => {
+      if (!cancelled) setStockByProduct(Object.fromEntries(entries))
+    }).catch((requestError) => {
+      if (!cancelled) setError(requestError.response?.data?.message || 'Unable to load stock for the selected warehouse.')
+    }).finally(() => { if (!cancelled) setLoadingWarehouseStock(false) })
+
+    return () => { cancelled = true }
+  }, [form.warehouseId, data.products])
 
   useEffect(() => {
     sessionStorage.setItem(posDraftKey, JSON.stringify({ form, cart, filters }))
@@ -50,14 +80,25 @@ export default function PosSaleForm() {
     const categoryId = product.categoryId ?? product.category?.id
     const brandId = product.brandId ?? product.brand?.id
     return matchesSearch && (!filters.categoryId || String(categoryId) === filters.categoryId) && (!filters.brandId || String(brandId) === filters.brandId)
-  }), [data.products, filters])
+  }).map((product) => form.warehouseId ? { ...product, stockQuantity: Number(stockByProduct[product.id] ?? 0) } : product), [data.products, filters, form.warehouseId, stockByProduct])
+  const availableStock = (product) => form.warehouseId ? Number(stockByProduct[product.id] ?? 0) : stockOf(product)
+
+  const selectWarehouse = (warehouseId) => {
+    if (warehouseId !== form.warehouseId && cart.length) {
+      setCart([])
+      setError('Cart cleared because the selling warehouse changed.')
+    }
+    setForm((current) => ({ ...current, warehouseId }))
+  }
 
   const addProduct = (product) => {
-    if (stockOf(product) <= 0) return
+    const warehouseStock = availableStock(product)
+    if (!form.warehouseId) return setError('Select the selling warehouse before adding products.')
+    if (warehouseStock <= 0) return
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id)
-      if (existing) return current.map((item) => item.productId === product.id ? { ...item, quantity: Math.min(item.quantity + 1, stockOf(product)) } : item)
-      return [...current, { productId: product.id, name: product.name, sku: product.sku, image: getImage(product), quantity: 1, unitPrice: priceOf(product), discount: 0, stock: stockOf(product), sizeId: firstOptionId(product, ['sizes', 'sizeIds', 'sizeId']), colorId: firstOptionId(product, ['colors', 'colorIds', 'colorId']) }]
+      if (existing) return current.map((item) => item.productId === product.id ? { ...item, quantity: Math.min(item.quantity + 1, warehouseStock) } : item)
+      return [...current, { productId: product.id, name: product.name, sku: product.sku, image: getImage(product), quantity: 1, unitPrice: priceOf(product), discount: 0, stock: warehouseStock, sizeId: firstOptionId(product, ['sizes', 'sizeIds', 'sizeId']), colorId: firstOptionId(product, ['colors', 'colorIds', 'colorId']) }]
     })
   }
 
@@ -65,19 +106,57 @@ export default function PosSaleForm() {
   const removeCart = (productId) => setCart((current) => current.filter((item) => item.productId !== productId))
   const subtotal = cart.reduce((total, item) => total + (Number(item.unitPrice) * Number(item.quantity)) - Number(item.discount || 0), 0)
   const grandTotal = Math.max(0, subtotal - Number(form.discount || 0))
+  const selectedCustomer = data.customers.find((customer) => String(customer.id) === String(form.customerId))
+  const isWalkInCustomer = /walk[\s-]*in/i.test(selectedCustomer?.name || '')
+
+  useEffect(() => {
+    if (isWalkInCustomer) setForm((current) => Number(current.paidAmount) === grandTotal ? current : { ...current, paidAmount: grandTotal })
+  }, [isWalkInCustomer, grandTotal])
+
+  const saveDraft = async () => {
+    if (!form.warehouseId || cart.length === 0) return setError('Select a warehouse and add at least one product before saving a draft.')
+    try {
+      setSavingDraft(true)
+      setError('')
+      await createPosDraft({ warehouseId: Number(form.warehouseId), ...(form.customerId ? { customerId: Number(form.customerId) } : {}), paymentMethod: 'cash', discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount: Number(form.paidAmount), dueAmount: Math.max(0, grandTotal - Number(form.paidAmount || 0)), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
+      navigate('/pos-sales/drafts')
+    } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to save POS draft.') }
+    finally { setSavingDraft(false) }
+  }
+
+  useEffect(() => {
+    const handleSaveDraft = () => { if (!savingDraft && !saving) saveDraft() }
+    window.addEventListener('pos:save-draft', handleSaveDraft)
+    return () => window.removeEventListener('pos:save-draft', handleSaveDraft)
+  }, [savingDraft, saving, form, cart, subtotal, grandTotal])
+
+  useEffect(() => {
+    const paymentPanel = document.querySelector('.pos-payment')
+    const checkoutButton = paymentPanel?.querySelector('.pos-checkout')
+    if (!paymentPanel || !checkoutButton) return undefined
+    const draftsButton = document.createElement('button')
+    draftsButton.type = 'button'
+    draftsButton.className = 'pos-view-drafts'
+    draftsButton.textContent = 'Save Current Sale as Draft'
+    const saveCurrentSale = () => window.dispatchEvent(new CustomEvent('pos:save-draft'))
+    draftsButton.addEventListener('click', saveCurrentSale)
+    paymentPanel.insertBefore(draftsButton, checkoutButton)
+    return () => { draftsButton.removeEventListener('click', saveCurrentSale); draftsButton.remove() }
+  }, [navigate])
 
   const completeSale = async () => {
     if (!form.warehouseId || !form.customerId || cart.length === 0) {
       setError('Select a warehouse and customer, then add at least one product to the cart.')
       return
     }
-    if (Number(form.paidAmount) > grandTotal) {
+    const paidAmount = isWalkInCustomer ? grandTotal : Number(form.paidAmount)
+    if (paidAmount > grandTotal) {
       setError('Paid amount cannot exceed the grand total.')
       return
     }
     setSaving(true); setError('')
     try {
-      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: form.paymentMethod, discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount: Number(form.paidAmount), dueAmount: Math.max(0, grandTotal - Number(form.paidAmount || 0)), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
+      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: 'cash', discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount, dueAmount: Math.max(0, grandTotal - paidAmount), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
       sessionStorage.removeItem(posDraftKey)
       navigate('/pos-sales')
     } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to complete POS sale.') }

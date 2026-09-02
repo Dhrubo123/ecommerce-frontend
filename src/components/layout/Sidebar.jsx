@@ -14,12 +14,12 @@ import './Sidebar.css'
 const menuSections = [
   { label: 'Main', items: [{ label: 'Dashboard', icon: LayoutDashboard }] },
   { label: 'Order Management', items: [
-    { label: 'Orders', icon: ShoppingCart, children: ['Order List', 'Create Order'] }, { label: 'Courier Tracking', icon: Truck },
+    { label: 'Orders', icon: ShoppingCart }, { label: 'Courier Tracking', icon: Truck },
     // { label: 'Pre-Orders', icon: CalendarClock, children: ['Overview / Analytics', 'Pre-Order List', 'Pre-Order Products', 'Commission', 'Profit Report', 'Pre-Order Settings'] },
     { label: 'Refunds', icon: RotateCcw, badge: 3, children: ['Sales Return List', 'Add Sales Return'] }, { label: 'POS', icon: Monitor, children: ['New POS Sale', 'POS Sales History', 'POS Drafts'] }, { label: 'Conversations', icon: Mail, badge: 5 },
   ] },
   { label: 'Catalog', items: [
-    { label: 'Products', icon: Package, children: ['All Products', 'Add Product', 'Digital Products', { label: 'Pending Product Approval', badge: 8 }, 'Product Update Requests'] },
+    { label: 'Products', icon: Package, children: ['All Products', 'Add Product' /* 'Digital Products', { label: 'Pending Product Approval', badge: 8 }, 'Product Update Requests' */] },
     { label: 'Categories', icon: Tags, children: ['All Categories', 'Add Category', 'All Subcategories', 'Add Subcategory'] },
     { label: 'Product Attributes', icon: SlidersHorizontal, children: ['Brands', 'Colors', 'Sizes', 'Units'] },
   ] },
@@ -52,7 +52,7 @@ const menuSections = [
 ]
 
 const getItemLabel = (item) => typeof item === 'string' ? item : item.label
-const routes = { Dashboard: '/dashboard', 'Order List': '/orders', 'Create Order': '/orders/create', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'Flash Deals': '/flash-sales', Banners: '/banners', 'Ad Campaigns': '/ad-campaigns', Coupons: '/promo-codes', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
+const routes = { Dashboard: '/dashboard', Orders: '/orders', 'Order List': '/orders', 'Sales Return List': '/sales-returns', 'Add Sales Return': '/sales-returns/create', 'New POS Sale': '/pos-sales/create', 'POS Sales History': '/pos-sales', 'POS Drafts': '/pos-sales/drafts', 'All Products': '/products', 'Add Product': '/products/create', Brands: '/brands', Colors: '/colors', Sizes: '/sizes', Units: '/units', Suppliers: '/suppliers', Warehouses: '/warehouses', 'All Warehouses': '/warehouses', 'Add Warehouse': '/warehouses/create', 'Warehouse Requisition List': '/warehouse-requisitions', 'Warehouse Requisitions': '/warehouse-requisitions/create', 'Warehouse Transfer List': '/warehouse-transfers', 'New Warehouse Transfer': '/warehouse-transfers/create', 'Stock Report': '/stock-reports', 'Stock Adjustment List': '/stock-adjustments', 'Add Stock Adjustment': '/stock-adjustments/create', Customers: '/customers', Employees: '/employees', 'Contact Us': '/contact-us', 'Flash Deals': '/flash-sales', Banners: '/banners', 'Ad Campaigns': '/ad-campaigns', Coupons: '/promo-codes', 'All Blogs': '/blogs', 'Add Blog': '/blogs/create', 'Purchase List': '/purchases', 'Add New Purchase': '/purchases/create', 'Purchase Returns': '/purchase-returns/create', 'All Categories': '/categories', 'Add Category': '/categories/create', 'All Subcategories': '/subcategories', 'Add Subcategory': '/subcategories/create' }
 
 routes['Roles & Permissions'] = '/roles'
 routes['Chart of Account'] = '/chart-of-accounts'
