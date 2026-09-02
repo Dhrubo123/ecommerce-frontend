@@ -14,8 +14,8 @@ import './Sidebar.css'
 const menuSections = [
   { label: 'Main', items: [{ label: 'Dashboard', icon: LayoutDashboard }] },
   { label: 'Order Management', items: [
-    { label: 'Orders', icon: ShoppingCart, children: ['Order List', 'Create Order'] }, { label: 'Courier Tracking', icon: Truck },
-    { label: 'Pre-Orders', icon: CalendarClock, children: ['Overview / Analytics', 'Pre-Order List', 'Pre-Order Products', 'Commission', 'Profit Report', 'Pre-Order Settings'] },
+    // { label: 'Orders', icon: ShoppingCart, children: ['Order List', 'Create Order'] }, { label: 'Courier Tracking', icon: Truck },
+    // { label: 'Pre-Orders', icon: CalendarClock, children: ['Overview / Analytics', 'Pre-Order List', 'Pre-Order Products', 'Commission', 'Profit Report', 'Pre-Order Settings'] },
     { label: 'Refunds', icon: RotateCcw, badge: 3, children: ['Sales Return List', 'Add Sales Return'] }, { label: 'POS', icon: Monitor, children: ['New POS Sale', 'POS Sales History', 'POS Drafts'] }, { label: 'Conversations', icon: Mail, badge: 5 },
   ] },
   { label: 'Catalog', items: [
