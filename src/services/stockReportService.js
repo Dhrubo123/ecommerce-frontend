@@ -2,7 +2,7 @@ import api from './api'
 
 const reportList = (data) => {
   if (Array.isArray(data)) return data
-  for (const key of ['stockReports', 'reports', 'items', 'stocks', 'rows', 'data']) {
+  for (const key of ['stockBalances', 'stockReports', 'reports', 'items', 'stocks', 'rows', 'data']) {
     if (Array.isArray(data?.[key])) return data[key]
   }
   return []

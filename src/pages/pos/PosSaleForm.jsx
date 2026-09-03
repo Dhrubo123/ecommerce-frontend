@@ -25,6 +25,11 @@ const money = (value) => Number(value || 0).toLocaleString(undefined, { minimumF
 const posDraftKey = 'ecommerce-admin:pos-sale-draft'
 const getDraft = () => { try { return JSON.parse(sessionStorage.getItem(posDraftKey) || 'null') || {} } catch { return {} } }
 const firstOptionId = (product, keys) => { for (const key of keys) { const values = product[key]; const first = Array.isArray(values) ? values[0] : values; const id = Number(first?.id ?? first?.sizeId ?? first?.colorId ?? first); if (Number.isFinite(id) && id > 0) return id } return null }
+const saleDateTime = () => {
+  const date = new Date()
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
 
 export default function PosSaleForm() {
   const navigate = useNavigate()
@@ -118,11 +123,27 @@ export default function PosSaleForm() {
   }, [isWalkInCustomer, grandTotal])
 
   const saveDraft = async () => {
-    if (!form.warehouseId || cart.length === 0) return setError('Select a warehouse and add at least one product before saving a draft.')
+    if (!form.warehouseId || !form.customerId || cart.length === 0) return setError('Select a warehouse and customer, then add at least one product before saving a draft.')
     try {
       setSavingDraft(true)
       setError('')
-      await createPosDraft({ warehouseId: Number(form.warehouseId), ...(form.customerId ? { customerId: Number(form.customerId) } : {}), paymentMethod: 'cash', discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount: Number(form.paidAmount), dueAmount: Math.max(0, grandTotal - Number(form.paidAmount || 0)), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
+      await createPosDraft({
+        warehouseId: Number(form.warehouseId),
+        customerId: Number(form.customerId),
+        saleDate: saleDateTime(),
+        paymentMethod: 'cash',
+        discount: Number(form.discount || 0),
+        paidAmount: Number(form.paidAmount || 0),
+        note: form.note.trim(),
+        items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({
+          productId: Number(productId),
+          sizeId: sizeId ? Number(sizeId) : null,
+          colorId: colorId ? Number(colorId) : null,
+          quantity: Number(quantity),
+          price: Number(unitPrice),
+          discount: Number(discount || 0),
+        })),
+      })
       navigate('/pos-sales/drafts')
     } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to save POS draft.') }
     finally { setSavingDraft(false) }
