@@ -57,12 +57,15 @@ export default function PosSaleForm() {
 
     let cancelled = false
     setLoadingWarehouseStock(true)
-    Promise.all(data.products.map(async (product) => {
-      const reports = await getStockReports({ warehouseId: Number(form.warehouseId), productId: Number(product.id) })
-      const report = Array.isArray(reports) ? reports[0] : reports
-      return [product.id, warehouseStockOf(report)]
-    })).then((entries) => {
-      if (!cancelled) setStockByProduct(Object.fromEntries(entries))
+    getStockReports({ warehouseId: Number(form.warehouseId) }).then((reports) => {
+      const stock = reports.reduce((totals, report) => {
+        const productId = report.productId ?? report.product?.id ?? report.product?.productId
+        if (productId !== undefined && productId !== null) {
+          totals[productId] = (totals[productId] || 0) + warehouseStockOf(report)
+        }
+        return totals
+      }, {})
+      if (!cancelled) setStockByProduct(stock)
     }).catch((requestError) => {
       if (!cancelled) setError(requestError.response?.data?.message || 'Unable to load stock for the selected warehouse.')
     }).finally(() => { if (!cancelled) setLoadingWarehouseStock(false) })
@@ -79,7 +82,8 @@ export default function PosSaleForm() {
     const matchesSearch = !query || product.name?.toLowerCase().includes(query) || product.sku?.toLowerCase().includes(query)
     const categoryId = product.categoryId ?? product.category?.id
     const brandId = product.brandId ?? product.brand?.id
-    return matchesSearch && (!filters.categoryId || String(categoryId) === filters.categoryId) && (!filters.brandId || String(brandId) === filters.brandId)
+    const hasWarehouseStock = !form.warehouseId || Number(stockByProduct[product.id] ?? 0) > 0
+    return matchesSearch && hasWarehouseStock && (!filters.categoryId || String(categoryId) === filters.categoryId) && (!filters.brandId || String(brandId) === filters.brandId)
   }).map((product) => form.warehouseId ? { ...product, stockQuantity: Number(stockByProduct[product.id] ?? 0) } : product), [data.products, filters, form.warehouseId, stockByProduct])
   const availableStock = (product) => form.warehouseId ? Number(stockByProduct[product.id] ?? 0) : stockOf(product)
 
