@@ -42,6 +42,16 @@ export default function ReportsPage({ report }) {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const exportCsv = () => {
+    const heading = report === 'sales' ? [...columns, 'Invoice'] : columns
+    const csv = [heading, ...visibleRows.map((row) => [...columns.map((key) => display(row[key])), ...(report === 'sales' ? [row.saleId ?? row.posSaleId ?? row.id ?? ''] : [])])]
+      .map((line) => line.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n')
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    link.download = `${report}-report-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
   const load = async () => {
     if (requiredPartyKey && !filters[requiredPartyKey]) { setData(null); setError(''); return }
     if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) return setError('The end date must be on or after the start date.')
@@ -50,8 +60,7 @@ export default function ReportsPage({ report }) {
       // The deployed stock summary endpoint currently returns HTTP 500 when
       // dateFrom/dateTo are supplied. It reports current stock, so omit those
       // unsupported query parameters while retaining product/warehouse filters.
-      const requestFilters = report === 'stock' ? { ...filters, dateFrom: '', dateTo: '' } : filters
-      setData(await getReport(report, requestFilters))
+      setData(await getReport(report, filters))
     }
     catch (requestError) { setData(null); setError(requestError.response?.data?.message || 'Unable to load this report.') }
     finally { setLoading(false) }
@@ -72,6 +81,6 @@ export default function ReportsPage({ report }) {
     <section className="brand-card"><div className="brand-toolbar report-filters">{config.filters.map((key) => <label key={key}>{labels[key]}<select value={filters[key]} onChange={(event) => setFilters((current) => ({ ...current, [key]: event.target.value }))}><option value="">All {labels[key].toLowerCase()}s</option>{optionFor(key).map((option) => <option key={option.id} value={option.id}>{optionLabel(key, option)}</option>)}</select></label>)}<label>From<input type="date" value={filters.dateFrom} onChange={(event) => setFilters((current) => ({ ...current, dateFrom: event.target.value }))} /></label><label>To<input type="date" value={filters.dateTo} onChange={(event) => setFilters((current) => ({ ...current, dateTo: event.target.value }))} /></label><button className="brand-primary" type="button" onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Apply filters'}</button></div></section>
     {error && <div className="brand-error">{error}</div>}
     {data?.summary && <div className="dashboard-stats">{Object.entries(data.summary).map(([key, value]) => <article className="dashboard-stat blue" key={key}><div><p>{key.replace(/([A-Z])/g, ' $1')}</p><strong>{display(value)}</strong></div></article>)}</div>}
-    <section className="brand-card"><div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search report" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}{report === 'sales' && <th>Invoice</th>}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length + 1 || 1}>Loading report…</td></tr> : requiredPartyKey && !filters[requiredPartyKey] ? <tr><td colSpan={columns.length + 1 || 1}>Select a {requiredPartyKey === 'supplierId' ? 'supplier' : 'customer'} and apply filters to view the ledger.</td></tr> : !visibleRows.length ? <tr><td colSpan={columns.length + 1 || 1}>No records found.</td></tr> : pagedRows.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{/date|created|updated|time/i.test(key) ? (formatDate(row[key]) || display(row[key])) : display(row[key])}</td>)}{report === 'sales' && <td>{row.saleId ?? row.posSaleId ?? row.id ? <Link className="table-icon-link" title="View POS invoice" to={`/pos-sales/${row.saleId ?? row.posSaleId ?? row.id}/invoice`}><FileText size={16} /></Link> : '—'}</td>}</tr>)}</tbody></table></div>{visibleRows.length > pageSize && <div className="pos-pagination"><span>Page {page} of {totalPages}</span><button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>Previous</button><button type="button" disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>Next</button></div>}</section>
+    <section className="brand-card"><div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search report" /></label>{(report === 'stock' || report === 'purchases') && <button className="brand-primary" type="button" disabled={!visibleRows.length} onClick={exportCsv}>Export CSV</button>}</div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}{report === 'sales' && <th>Invoice</th>}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length + 1 || 1}>Loading report…</td></tr> : requiredPartyKey && !filters[requiredPartyKey] ? <tr><td colSpan={columns.length + 1 || 1}>Select a {requiredPartyKey === 'supplierId' ? 'supplier' : 'customer'} and apply filters to view the ledger.</td></tr> : !visibleRows.length ? <tr><td colSpan={columns.length + 1 || 1}>No records found.</td></tr> : pagedRows.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{/date|created|updated|time/i.test(key) ? (formatDate(row[key]) || display(row[key])) : display(row[key])}</td>)}{report === 'sales' && <td>{row.saleId ?? row.posSaleId ?? row.id ? <Link className="table-icon-link" title="View POS invoice" to={`/pos-sales/${row.saleId ?? row.posSaleId ?? row.id}/invoice`}><FileText size={16} /></Link> : '—'}</td>}</tr>)}</tbody></table></div>{visibleRows.length > pageSize && <div className="pos-pagination"><span>Page {page} of {totalPages}</span><button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>Previous</button><button type="button" disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>Next</button></div>}</section>
   </div></AdminLayout>
 }
