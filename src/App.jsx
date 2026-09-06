@@ -170,7 +170,7 @@ function App() {
         {['sub-accounts', 'predefined-accounts', 'financial-years', 'opening-balances', 'payment-methods', 'bank-reconciliations', 'supplier-payments', 'credit-vouchers'].map((module) => <Route key={module} path={`/${module}`} element={<AccountsModule key={module} module={module} />} />)}
         <Route path="/payment-methods/create" element={<AccountsModule key="add-payment-method" module="payment-methods" create />} />
         <Route path="/supplier-payments/create" element={<AccountsModule key="supplier-payment" module="supplier-payments" />} />
-        <Route path="/customer-payments/create" element={<AccountsModule key="customer-payment" module="customer-payments" />} />
+        <Route path="/customer-payments/create" element={<CustomerPaymentForm />} />
         <Route path="/credit-vouchers/create" element={<Navigate to="/credit-vouchers" replace />} />
         <Route path="/debit-vouchers/create" element={<AccountsModule key="debit" module="debit-vouchers" />} />
         <Route path="/contra-vouchers/create" element={<AccountsModule key="contra" module="contra-vouchers" />} />

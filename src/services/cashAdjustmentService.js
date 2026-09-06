@@ -8,7 +8,6 @@ const CASH_ADJUSTMENT_ENDPOINT = '/admin/accounts/journal-vouchers'
 
 export const createCashAdjustment = async (adjustment) => unwrap(await api.post(CASH_ADJUSTMENT_ENDPOINT, {
   date: adjustment.date,
-  adjustment_type: adjustment.adjustment_type,
-  remarks: adjustment.remarks,
-  amount: Number(adjustment.amount),
+  ledger_comment: adjustment.remarks,
+  entries: adjustment.entries,
 }))

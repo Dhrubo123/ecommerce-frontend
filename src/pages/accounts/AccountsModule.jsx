@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import AdminLayout from '../../components/layout/AdminLayout'
 import api from '../../services/api'
 import '../brands/brands.css'
+import './accounts.css'
+import './accounts-module.css'
 
 const field = (key, label, type = 'text', options) => ({ key, label, type, options })
 const account = (key, label) => field(key, label, 'select', 'coa')
@@ -34,15 +36,24 @@ const labelOf = (row) => row.headName ?? row.name ?? row.accountName ?? row.invo
 const url = (endpoint) => endpoint.startsWith('/') ? endpoint : `/admin/accounts/${endpoint}`
 const defaults = (fields = []) => Object.fromEntries(fields.map((f) => [f.key, f.type === 'checkbox' ? false : f.type === 'date' ? new Date().toLocaleDateString('en-CA') : '']))
 const display = (value) => value == null ? '—' : typeof value === 'boolean' ? (value ? 'Yes' : 'No') : typeof value === 'object' ? (value.name ?? value.headName ?? JSON.stringify(value)) : String(value)
+const dateValue = (value) => value ? String(value).slice(0, 10) : ''
+const accountColumns = [
+  { label: 'Account code', value: (row) => row.headCode ?? row.code ?? row.accountCode ?? '—' },
+  { label: 'Account name', value: (row) => row.headName ?? row.name ?? row.accountName ?? '—' },
+  { label: 'Account type', value: (row) => row.headType ?? row.accountType ?? row.type ?? 'Sub account' },
+  { label: 'Status', value: (row) => row.isActive },
+]
 
 export default function AccountsModule({ module, create = false }) {
   const config = accountModules[module]
   const requiresFilter = module === 'sub-accounts'
+  const isFinancialYear = module === 'financial-years'
   const [rows, setRows] = useState([])
   const [options, setOptions] = useState({})
   const [form, setForm] = useState(() => defaults(config.fields))
   const [filter, setFilter] = useState('')
   const [search, setSearch] = useState('')
+  const [financialFilters, setFinancialFilters] = useState({ name: '', status: '', from: '', to: '' })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -86,11 +97,29 @@ export default function AccountsModule({ module, create = false }) {
     catch (e) { setError(e.response?.data?.message || e.message) }
     finally { setSaving(false) }
   }
-  const visible = rows.filter((row) => Object.values(row).some((v) => display(v).toLowerCase().includes(search.toLowerCase())))
+  const visible = rows.filter((row) => {
+    const hasSearch = Object.values(row).some((v) => display(v).toLowerCase().includes(search.toLowerCase()))
+    if (!hasSearch || !isFinancialYear) return hasSearch
+    const name = String(row.name ?? row.financialYearName ?? '').toLowerCase()
+    const active = row.isActive ?? row.active
+    const start = dateValue(row.startDate ?? row.start_date)
+    const end = dateValue(row.endDate ?? row.end_date)
+    return (!financialFilters.name || name.includes(financialFilters.name.toLowerCase()))
+      && (!financialFilters.status || String(Boolean(active)) === financialFilters.status)
+      && (!financialFilters.from || (end && end >= financialFilters.from))
+      && (!financialFilters.to || (start && start <= financialFilters.to))
+  })
   const columns = [...new Set(rows.flatMap(Object.keys))].filter((key) => !['children', 'password', 'token'].includes(key))
+  const updateFinancialFilter = (key, value) => setFinancialFilters((current) => ({ ...current, [key]: value }))
+  const renderCell = (value, key) => key === 'isActive' || key === 'active'
+    ? <span className={`accounts-status ${value ? 'active' : 'inactive'}`}>{value ? 'Active' : 'Inactive'}</span>
+    : display(value)
   return <AdminLayout title={config.title}><div className="brand-page"><div className="brand-heading"><div><p>ACCOUNTS</p><h2>{create ? 'Add Payment Method' : config.title}</h2></div><button type="button" onClick={() => setRevision((v) => v + 1)}>Refresh</button></div>
     {error && <div className="brand-error" role="alert">{error}</div>}{success && <div className="brand-success" role="status">{success}</div>}
-    {config.fields && <form className="brand-form" onSubmit={save}><section><h3>Add {module === 'sub-accounts' ? 'sub account' : config.title.toLowerCase()}</h3><div className="brand-form-grid">{config.fields.map((f) => <label key={f.key}>{f.label}{control(f, form[f.key], (value) => setForm((current) => ({ ...current, [f.key]: value })))}</label>)}</div><div className="brand-form-actions"><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button></div></section></form>}
-    {config.list !== false && !create && <section className="brand-card"><div className="brand-toolbar">{config.filter && <label>{config.filter.label}{control(config.filter, filter, setFilter, false)}</label>}<label>Search<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search records" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length || 1}>Loading…</td></tr> : requiresFilter && !filter ? <tr><td colSpan={columns.length || 1}>Select a parent account to view its sub accounts.</td></tr> : !visible.length ? <tr><td colSpan={columns.length || 1}>No records found.</td></tr> : visible.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{display(row[key])}</td>)}</tr>)}</tbody></table></div></section>}
+    {config.fields && <form className="brand-form accounts-entry-form" onSubmit={save}><section><h3>Add {module === 'sub-accounts' ? 'sub account' : config.title.toLowerCase()}</h3><div className="brand-form-grid">{config.fields.map((f) => <label key={f.key}>{f.label}{control(f, form[f.key], (value) => setForm((current) => ({ ...current, [f.key]: value })))}</label>)}</div><div className="brand-form-actions"><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button></div></section></form>}
+    {config.list !== false && !create && <section className="brand-card accounts-list-card"><div className={`brand-toolbar accounts-toolbar ${isFinancialYear ? 'financial-year-filters' : ''}`}>
+      {config.filter && <label className="accounts-parent-filter">{config.filter.label}{control(config.filter, filter, setFilter, false)}</label>}
+      {isFinancialYear && <><label>Financial year name<input value={financialFilters.name} onChange={(e) => updateFinancialFilter('name', e.target.value)} placeholder="Search financial year" /></label><label>Status<select value={financialFilters.status} onChange={(e) => updateFinancialFilter('status', e.target.value)}><option value="">All statuses</option><option value="true">Active</option><option value="false">Inactive</option></select></label><label>Starts from<input type="date" value={financialFilters.from} onChange={(e) => updateFinancialFilter('from', e.target.value)} /></label><label>Ends by<input type="date" value={financialFilters.to} onChange={(e) => updateFinancialFilter('to', e.target.value)} /></label><button type="button" className="accounts-clear-filters" onClick={() => setFinancialFilters({ name: '', status: '', from: '', to: '' })}>Clear filters</button></>}
+      <label className="accounts-search">Search<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={requiresFilter ? 'Search selected sub accounts' : 'Search records'} /></label></div><div className="brand-table"><table><thead><tr>{requiresFilter ? accountColumns.map((column) => <th key={column.label}>{column.label}</th>) : columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{loading ? <tr><td colSpan={(requiresFilter ? accountColumns : columns).length || 1}>Loading…</td></tr> : requiresFilter && !filter ? <tr><td colSpan={accountColumns.length}>Choose a parent account to show its sub accounts.</td></tr> : !visible.length ? <tr><td colSpan={(requiresFilter ? accountColumns : columns).length || 1}>No records found.</td></tr> : visible.map((row, index) => <tr key={row.id ?? index}>{requiresFilter ? accountColumns.map((column) => <td key={column.label}>{column.label === 'Status' ? renderCell(column.value(row), 'isActive') : display(column.value(row))}</td>) : columns.map((key) => <td key={key}>{renderCell(row[key], key)}</td>)}</tr>)}</tbody></table></div></section>}
   </div></AdminLayout>
 }
