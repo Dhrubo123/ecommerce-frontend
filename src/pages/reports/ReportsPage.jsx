@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { FileText, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { getCustomers } from '../../services/customerService'
 import { getProducts } from '../../services/productService'
@@ -10,7 +11,7 @@ import '../brands/brands.css'
 
 const reports = {
   stock: { title: 'Stock Report', description: 'Review stock movements and current quantities by product and warehouse.', filters: ['productId', 'warehouseId'] },
-  sales: { title: 'Sales Report', description: 'Review completed POS sales during the selected period.', filters: ['customerId', 'productId'] },
+  sales: { title: 'Sales Report', description: 'Review completed POS sales during the selected period.', filters: ['customerId', 'productId', 'warehouseId'] },
   purchases: { title: 'Purchase Report', description: 'Review received purchase line items during the selected period.', filters: ['supplierId', 'productId'] },
   'supplier-ledger': { title: 'Supplier Ledger', description: 'Review supplier opening, movement, and running balances.', filters: ['supplierId'] },
   'customer-ledger': { title: 'Customer Ledger', description: 'Review customer opening, movement, and running balances.', filters: ['customerId'] },
@@ -29,6 +30,7 @@ const display = (value) => {
 }
 const titleOf = (value) => value.name || `${value.firstName ?? ''} ${value.lastName ?? ''}`.trim() || value.productName || value.supplierName || value.customerName || value.warehouseName || `#${value.id}`
 const optionLabel = (key, value) => key === 'customerId' ? `${value.id}. ${titleOf(value)}` : titleOf(value)
+const formatDate = (value) => { if (!value || typeof value !== 'string') return null; const parsed = new Date(value); return Number.isNaN(parsed.valueOf()) ? null : new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(parsed) }
 
 export default function ReportsPage({ report }) {
   const config = reports[report]
@@ -39,11 +41,18 @@ export default function ReportsPage({ report }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const load = async () => {
     if (requiredPartyKey && !filters[requiredPartyKey]) { setData(null); setError(''); return }
     if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) return setError('The end date must be on or after the start date.')
     setLoading(true); setError('')
-    try { setData(await getReport(report, filters)) }
+    try {
+      // The deployed stock summary endpoint currently returns HTTP 500 when
+      // dateFrom/dateTo are supplied. It reports current stock, so omit those
+      // unsupported query parameters while retaining product/warehouse filters.
+      const requestFilters = report === 'stock' ? { ...filters, dateFrom: '', dateTo: '' } : filters
+      setData(await getReport(report, requestFilters))
+    }
     catch (requestError) { setData(null); setError(requestError.response?.data?.message || 'Unable to load this report.') }
     finally { setLoading(false) }
   }
@@ -53,12 +62,16 @@ export default function ReportsPage({ report }) {
   }, [report])
   const rows = rowsOf(data)
   const visibleRows = useMemo(() => rows.filter((row) => Object.values(row).some((value) => display(value).toLowerCase().includes(search.toLowerCase()))), [rows, search])
-  const columns = useMemo(() => [...new Set(rows.flatMap(Object.keys))].filter((key) => !['id', 'createdAt', 'updatedAt', 'password', 'token'].includes(key) && typeof rows.find((row) => row[key] !== undefined)?.[key] !== 'object'), [rows])
+  const columns = useMemo(() => [...new Set(rows.flatMap(Object.keys))].filter((key) => !(key === 'id' || key.endsWith('Id') || key.endsWith('_id') || /password|token/i.test(key)) && !['createdAt', 'updatedAt'].includes(key) && typeof rows.find((row) => row[key] !== undefined)?.[key] !== 'object'), [rows])
+  const pageSize = 10
+  const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize))
+  const pagedRows = visibleRows.slice((page - 1) * pageSize, page * pageSize)
+  useEffect(() => { setPage(1) }, [search, data, report])
   const optionFor = (key) => ({ productId: options.products, warehouseId: options.warehouses, customerId: options.customers, supplierId: options.suppliers }[key] || [])
   return <AdminLayout title={config.title}><div className="brand-page"><div className="brand-heading"><div><p>REPORTS</p><h2>{config.title}</h2><span>{config.description}</span></div></div>
     <section className="brand-card"><div className="brand-toolbar report-filters">{config.filters.map((key) => <label key={key}>{labels[key]}<select value={filters[key]} onChange={(event) => setFilters((current) => ({ ...current, [key]: event.target.value }))}><option value="">All {labels[key].toLowerCase()}s</option>{optionFor(key).map((option) => <option key={option.id} value={option.id}>{optionLabel(key, option)}</option>)}</select></label>)}<label>From<input type="date" value={filters.dateFrom} onChange={(event) => setFilters((current) => ({ ...current, dateFrom: event.target.value }))} /></label><label>To<input type="date" value={filters.dateTo} onChange={(event) => setFilters((current) => ({ ...current, dateTo: event.target.value }))} /></label><button className="brand-primary" type="button" onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Apply filters'}</button></div></section>
     {error && <div className="brand-error">{error}</div>}
     {data?.summary && <div className="dashboard-stats">{Object.entries(data.summary).map(([key, value]) => <article className="dashboard-stat blue" key={key}><div><p>{key.replace(/([A-Z])/g, ' $1')}</p><strong>{display(value)}</strong></div></article>)}</div>}
-    <section className="brand-card"><div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search report" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length || 1}>Loading report…</td></tr> : requiredPartyKey && !filters[requiredPartyKey] ? <tr><td colSpan={columns.length || 1}>Select a {requiredPartyKey === 'supplierId' ? 'supplier' : 'customer'} and apply filters to view the ledger.</td></tr> : !visibleRows.length ? <tr><td colSpan={columns.length || 1}>No records found.</td></tr> : visibleRows.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{display(row[key])}</td>)}</tr>)}</tbody></table></div></section>
+    <section className="brand-card"><div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search report" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}{report === 'sales' && <th>Invoice</th>}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length + 1 || 1}>Loading report…</td></tr> : requiredPartyKey && !filters[requiredPartyKey] ? <tr><td colSpan={columns.length + 1 || 1}>Select a {requiredPartyKey === 'supplierId' ? 'supplier' : 'customer'} and apply filters to view the ledger.</td></tr> : !visibleRows.length ? <tr><td colSpan={columns.length + 1 || 1}>No records found.</td></tr> : pagedRows.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{/date|created|updated|time/i.test(key) ? (formatDate(row[key]) || display(row[key])) : display(row[key])}</td>)}{report === 'sales' && <td>{row.saleId ?? row.posSaleId ?? row.id ? <Link className="table-icon-link" title="View POS invoice" to={`/pos-sales/${row.saleId ?? row.posSaleId ?? row.id}/invoice`}><FileText size={16} /></Link> : '—'}</td>}</tr>)}</tbody></table></div>{visibleRows.length > pageSize && <div className="pos-pagination"><span>Page {page} of {totalPages}</span><button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>Previous</button><button type="button" disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>Next</button></div>}</section>
   </div></AdminLayout>
 }
