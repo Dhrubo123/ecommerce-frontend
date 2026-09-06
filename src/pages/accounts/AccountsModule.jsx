@@ -37,6 +37,7 @@ const display = (value) => value == null ? '—' : typeof value === 'boolean' ? 
 
 export default function AccountsModule({ module, create = false }) {
   const config = accountModules[module]
+  const requiresFilter = module === 'sub-accounts'
   const [rows, setRows] = useState([])
   const [options, setOptions] = useState({})
   const [form, setForm] = useState(() => defaults(config.fields))
@@ -57,6 +58,7 @@ export default function AccountsModule({ module, create = false }) {
   }, [config, revision])
   useEffect(() => {
     if (config.list === false || create) return
+    if (requiresFilter && !filter) { setRows([]); setLoading(false); return }
     let active = true
     setLoading(true)
     api.get(url(config.endpoint), { params: config.filter && filter ? { [config.filter.key]: Number(filter) } : {} })
@@ -64,7 +66,7 @@ export default function AccountsModule({ module, create = false }) {
       .catch((e) => { if (active) { setRows([]); setError(e.response?.data?.message || e.message) } })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [config, filter, revision, create])
+  }, [config, filter, revision, create, requiresFilter])
   const control = (f, value, change, required = true) => f.type === 'select' ? <select required={required} value={value} onChange={(e) => change(e.target.value)}><option value="">Select {f.label.toLowerCase()}</option>{(Array.isArray(f.options) ? f.options.map((v) => ({ id: v, name: v })) : options[f.options] || []).map((row) => <option key={row.id} value={row.id}>{labelOf(row)}</option>)}</select> : <input type={f.type} required={required && !['checkbox', 'note', 'notes', 'remarks', 'ledger_comment', 'transactionIds'].includes(f.type === 'checkbox' ? f.type : f.key)} checked={f.type === 'checkbox' ? Boolean(value) : undefined} value={f.type === 'checkbox' ? undefined : value} step={f.type === 'number' ? '0.01' : undefined} min={f.key === 'amount' ? '0.01' : undefined} onChange={(e) => change(f.type === 'checkbox' ? e.target.checked : e.target.value)} />
   const save = async (e) => {
     e.preventDefault(); setError(''); setSuccess('')
@@ -89,6 +91,6 @@ export default function AccountsModule({ module, create = false }) {
   return <AdminLayout title={config.title}><div className="brand-page"><div className="brand-heading"><div><p>ACCOUNTS</p><h2>{create ? 'Add Payment Method' : config.title}</h2></div><button type="button" onClick={() => setRevision((v) => v + 1)}>Refresh</button></div>
     {error && <div className="brand-error" role="alert">{error}</div>}{success && <div className="brand-success" role="status">{success}</div>}
     {config.fields && <form className="brand-form" onSubmit={save}><section><h3>Add {module === 'sub-accounts' ? 'sub account' : config.title.toLowerCase()}</h3><div className="brand-form-grid">{config.fields.map((f) => <label key={f.key}>{f.label}{control(f, form[f.key], (value) => setForm((current) => ({ ...current, [f.key]: value })))}</label>)}</div><div className="brand-form-actions"><button className="brand-primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button></div></section></form>}
-    {config.list !== false && !create && <section className="brand-card"><div className="brand-toolbar">{config.filter && <label>{config.filter.label}{control(config.filter, filter, setFilter, false)}</label>}<label>Search<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search records" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length || 1}>Loading…</td></tr> : !visible.length ? <tr><td colSpan={columns.length || 1}>No records found.</td></tr> : visible.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{display(row[key])}</td>)}</tr>)}</tbody></table></div></section>}
+    {config.list !== false && !create && <section className="brand-card"><div className="brand-toolbar">{config.filter && <label>{config.filter.label}{control(config.filter, filter, setFilter, false)}</label>}<label>Search<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search records" /></label></div><div className="brand-table"><table><thead><tr>{columns.map((key) => <th key={key}>{key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{loading ? <tr><td colSpan={columns.length || 1}>Loading…</td></tr> : requiresFilter && !filter ? <tr><td colSpan={columns.length || 1}>Select a parent account to view its sub accounts.</td></tr> : !visible.length ? <tr><td colSpan={columns.length || 1}>No records found.</td></tr> : visible.map((row, index) => <tr key={row.id ?? index}>{columns.map((key) => <td key={key}>{display(row[key])}</td>)}</tr>)}</tbody></table></div></section>}
   </div></AdminLayout>
 }
