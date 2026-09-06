@@ -12,9 +12,9 @@ const toUi = (banner) => ({
 const toPayload = (banner) => {
   const payload = new FormData()
   payload.append('title', banner.title.trim())
+  if (banner.image instanceof File) payload.append('image', banner.image)
   payload.append('isOwnShop', String(Boolean(banner.isOwnShop)))
   payload.append('isActive', String(Boolean(banner.isActive)))
-  if (banner.image instanceof File) payload.append('image', banner.image)
   return payload
 }
 

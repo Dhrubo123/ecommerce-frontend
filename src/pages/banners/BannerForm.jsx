@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ImagePlus, Upload, X } from 'lucide-react'
+import { ImagePlus } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { createBanner, getBanner, updateBanner } from '../../services/bannerService'
 import '../brands/brands.css'
 import '../categories/categories.css'
 
-const initialForm = { title: '', image: null, imagePreview: '', isOwnShop: true, isActive: true }
+const initialForm = { title: '', image: '', isOwnShop: true, isActive: true }
 
 export default function BannerForm() {
   const { id } = useParams()
@@ -19,7 +19,7 @@ export default function BannerForm() {
   useEffect(() => {
     if (!editing) return
     getBanner(id)
-      .then((banner) => setForm({ ...initialForm, ...banner, image: null, imagePreview: banner.image || '' }))
+      .then((banner) => setForm({ ...initialForm, ...banner, image: banner.image || '' }))
       .catch((error) => setErrors({ api: error.response?.data?.message || 'Unable to load banner.' }))
   }, [editing, id])
 
@@ -29,16 +29,13 @@ export default function BannerForm() {
     setErrors((current) => ({ ...current, [name]: '', api: '' }))
   }
 
-  const chooseImage = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setErrors((current) => ({ ...current, image: 'Choose a valid image file.' }))
-      return
-    }
-    setForm((current) => ({ ...current, image: file, imagePreview: URL.createObjectURL(file) }))
-    setErrors((current) => ({ ...current, image: '' }))
+  const changeImage = (event) => {
+    const image = event.target.files?.[0] || ''
+    setForm((current) => ({ ...current, image }))
+    setErrors((current) => ({ ...current, image: '', api: '' }))
   }
+
+  const previewUrl = form.image instanceof File ? URL.createObjectURL(form.image) : form.image
 
   const submit = async (event) => {
     event.preventDefault()
@@ -68,14 +65,12 @@ export default function BannerForm() {
             <h3>Banner information</h3>
             {errors.api && <div className="brand-error">{errors.api}</div>}
             <label>Title *<input name="title" value={form.title} onChange={change} placeholder="Eid Collection 2026" />{errors.title && <small>{errors.title}</small>}</label>
-            <div className="form-field"><span>Banner Image *</span><div className="image-upload">
-              {form.imagePreview ? <><img src={form.imagePreview} alt="Banner preview" /><button type="button" onClick={() => setForm((current) => ({ ...current, image: null, imagePreview: '' }))}><X size={14} /> Remove image</button></> : <><ImagePlus size={28} /><strong>Upload a banner image</strong><label className="upload-button"><Upload size={15} /> Choose file<input type="file" accept="image/*" onChange={chooseImage} /></label><small>PNG, JPG or WebP</small></>}
-            </div>{errors.image && <small className="field-error">{errors.image}</small>}</div>
+            <label className="form-field"><span>Banner Image *</span><input name="image" type="file" accept="image/*" onChange={changeImage} />{errors.image && <small className="field-error">{errors.image}</small>}<small>Upload a JPG, PNG, or WebP image.</small></label>
             <label className="blog-toggle"><input type="checkbox" name="isOwnShop" checked={form.isOwnShop} onChange={change} /><span><strong>Show on own shop</strong><small>Display this banner on your own storefront.</small></span></label>
             <label className="blog-toggle"><input type="checkbox" name="isActive" checked={form.isActive} onChange={change} /><span><strong>Active banner</strong><small>Visible to customers when enabled.</small></span></label>
             <div className="brand-form-actions"><button type="button" onClick={() => navigate('/banners')}>Cancel</button><button className="brand-primary" disabled={saving}>{saving ? 'Saving...' : editing ? 'Update Banner' : 'Save Banner'}</button></div>
           </section>
-          <aside><span>LIVE PREVIEW</span><div className="preview-image">{form.imagePreview ? <img src={form.imagePreview} alt="Banner" /> : <ImagePlus size={34} />}</div><h3>{form.title || 'Banner title'}</h3><p>{form.isOwnShop ? 'Own Shop banner' : 'Marketplace banner'}</p><p>{form.isActive ? 'Visible to customers' : 'Hidden from customers'}</p></aside>
+          <aside><span>LIVE PREVIEW</span><div className="preview-image">{previewUrl ? <img src={previewUrl} alt="Banner" onError={(event) => { event.currentTarget.style.display = 'none' }} /> : <ImagePlus size={34} />}</div><h3>{form.title || 'Banner title'}</h3><p>{form.isOwnShop ? 'Own Shop banner' : 'Marketplace banner'}</p><p>{form.isActive ? 'Visible to customers' : 'Hidden from customers'}</p></aside>
         </form>
       </div>
     </AdminLayout>
