@@ -16,8 +16,6 @@ const reports = {
   'customer-ledger': { title: 'Customer Ledger', description: 'Review customer opening, movement, and running balances.', filters: ['customerId'] },
 }
 const labels = { productId: 'Product', warehouseId: 'Warehouse', customerId: 'Customer', supplierId: 'Supplier' }
-const dateToday = new Date().toLocaleDateString('en-CA')
-const dateStart = `${new Date().getFullYear()}-01-01`
 const rowsOf = (data) => {
   if (Array.isArray(data)) return data
   if (!data || typeof data !== 'object') return []
@@ -35,7 +33,7 @@ const optionLabel = (key, value) => key === 'customerId' ? `${value.id}. ${title
 export default function ReportsPage({ report }) {
   const config = reports[report]
   const requiredPartyKey = report === 'supplier-ledger' ? 'supplierId' : report === 'customer-ledger' ? 'customerId' : null
-  const [filters, setFilters] = useState({ dateFrom: dateStart, dateTo: dateToday, productId: '', warehouseId: '', customerId: '', supplierId: '' })
+  const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', productId: '', warehouseId: '', customerId: '', supplierId: '' })
   const [options, setOptions] = useState({ products: [], warehouses: [], customers: [], suppliers: [] })
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
