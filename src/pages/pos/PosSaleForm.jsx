@@ -151,12 +151,9 @@ export default function PosSaleForm() {
   const removeCart = (productId) => setCart((current) => current.filter((item) => item.productId !== productId))
   const subtotal = cart.reduce((total, item) => total + (Number(item.unitPrice) * Number(item.quantity)) - Number(item.discount || 0), 0)
   const grandTotal = Math.max(0, subtotal - Number(form.discount || 0))
-  const selectedCustomer = data.customers.find((customer) => String(customer.id) === String(form.customerId))
-  const isWalkInCustomer = /walk[\s-]*in/i.test(customerName(selectedCustomer))
-
   useEffect(() => {
-    if (isWalkInCustomer) setForm((current) => Number(current.paidAmount) === grandTotal ? current : { ...current, paidAmount: grandTotal })
-  }, [isWalkInCustomer, grandTotal])
+    setForm((current) => Number(current.paidAmount) === grandTotal ? current : { ...current, paidAmount: grandTotal })
+  }, [grandTotal])
 
   const saveDraft = async () => {
     if (!form.warehouseId || !form.customerId || cart.length === 0) return setError('Select a warehouse and customer, then add at least one product before saving a draft.')
@@ -169,7 +166,7 @@ export default function PosSaleForm() {
         saleDate: saleDateTime(),
         paymentMethod: 'cash',
         discount: Number(form.discount || 0),
-        paidAmount: Number(form.paidAmount || 0),
+        paidAmount: grandTotal,
         note: form.note.trim(),
         items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({
           productId: Number(productId),
@@ -210,14 +207,10 @@ export default function PosSaleForm() {
       setError('Select a warehouse and customer, then add at least one product to the cart.')
       return
     }
-    const paidAmount = isWalkInCustomer ? grandTotal : Number(form.paidAmount)
-    if (paidAmount > grandTotal) {
-      setError('Paid amount cannot exceed the grand total.')
-      return
-    }
+    const paidAmount = grandTotal
     setSaving(true); setError('')
     try {
-      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: 'cash', discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount, dueAmount: Math.max(0, grandTotal - paidAmount), note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
+      await createPosSale({ warehouseId: Number(form.warehouseId), customerId: Number(form.customerId), paymentMethod: 'cash', discount: Number(form.discount), totalAmount: subtotal, grandTotal, paidAmount, dueAmount: 0, note: form.note.trim(), items: cart.map(({ productId, sizeId, colorId, quantity, unitPrice, discount }) => ({ productId: Number(productId), ...(sizeId ? { sizeId: Number(sizeId) } : {}), ...(colorId ? { colorId: Number(colorId) } : {}), quantity: Number(quantity), price: Number(unitPrice), discount: Number(discount) })) })
       if (resumedDraftId) await deletePosDraft(resumedDraftId)
       sessionStorage.removeItem(posDraftKey)
       navigate('/pos-sales')
@@ -237,7 +230,7 @@ export default function PosSaleForm() {
         <div className="pos-customer"><label>Customer *<select value={form.customerId} onChange={(event) => setForm((current) => ({ ...current, customerId: event.target.value }))}><option value="">Select customer</option>{data.customers.map((customer) => <option key={customer.id} value={customer.id}>{customerName(customer)} {customer.phone ? `— ${customer.phone}` : ''}</option>)}</select></label><button type="button" title="Add customer" onClick={() => setShowCustomerModal(true)}><UserPlus size={18} /></button></div>
         <label className="pos-field">Sell From Warehouse *<select value={form.warehouseId} onChange={(event) => setForm((current) => ({ ...current, warehouseId: event.target.value }))}><option value="">Select warehouse</option>{data.warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}</select></label>
         <div className="pos-cart-items">{cart.length === 0 ? <div className="pos-cart-empty"><ShoppingCart size={38} /><strong>Your cart is empty</strong><span>Click a product to add it.</span></div> : cart.map((item) => <article className="pos-cart-item" key={item.productId}><div className="pos-cart-thumb">{item.image ? <img src={item.image} alt="" /> : <ImageOff size={18} />}</div><div className="pos-cart-copy"><strong>{item.name}</strong><small>৳{money(item.unitPrice)} each</small><div className="pos-quantity"><button type="button" onClick={() => item.quantity === 1 ? removeCart(item.productId) : updateCart(item.productId, { quantity: item.quantity - 1 })}><Minus size={14} /></button><span>{item.quantity}</span><button type="button" disabled={item.quantity >= item.stock} onClick={() => updateCart(item.productId, { quantity: item.quantity + 1 })}><Plus size={14} /></button></div></div><div className="pos-cart-price"><strong>৳{money((item.unitPrice * item.quantity) - item.discount)}</strong><button type="button" onClick={() => removeCart(item.productId)}><Trash2 size={15} /></button></div></article>)}</div>
-        <div className="pos-payment"><div className="pos-total-row"><span>Subtotal</span><strong>৳{money(subtotal)}</strong></div><label>Order Discount<input type="number" min="0" max={subtotal} value={form.discount} onChange={(event) => setForm((current) => ({ ...current, discount: event.target.value }))} /></label><div className="pos-total-row grand"><span>Grand Total</span><strong>৳{money(grandTotal)}</strong></div><div className="pos-payment-grid"><label>Payment Method<select value={form.paymentMethod} onChange={(event) => setForm((current) => ({ ...current, paymentMethod: event.target.value }))}><option value="cash">Cash</option><option value="card">Card</option><option value="mobile_banking">Mobile Banking</option></select></label><label>Paid Amount<input type="number" min="0" max={grandTotal} value={form.paidAmount} onChange={(event) => setForm((current) => ({ ...current, paidAmount: event.target.value }))} /></label></div><label>Note<textarea value={form.note} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Counter sale" /></label><button className="pos-checkout" type="button" disabled={saving || cart.length === 0} onClick={completeSale}>{saving ? 'Completing Sale…' : `Complete Sale · ৳${money(grandTotal)}`}</button></div>
+        <div className="pos-payment"><div className="pos-total-row"><span>Subtotal</span><strong>৳{money(subtotal)}</strong></div><label>Order Discount<input type="number" min="0" max={subtotal} value={form.discount} onChange={(event) => setForm((current) => ({ ...current, discount: event.target.value }))} /></label><div className="pos-total-row grand"><span>Grand Total</span><strong>৳{money(grandTotal)}</strong></div><div className="pos-payment-grid"><label>Payment Method<select value={form.paymentMethod} onChange={(event) => setForm((current) => ({ ...current, paymentMethod: event.target.value }))}><option value="cash">Cash</option><option value="card">Card</option><option value="mobile_banking">Mobile Banking</option></select></label><label>Paid Amount<input type="number" value={grandTotal} readOnly title="POS sales must be paid in full" /></label></div><label>Note<textarea value={form.note} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Counter sale" /></label><button className="pos-checkout" type="button" disabled={saving || cart.length === 0} onClick={completeSale}>{saving ? 'Completing Sale…' : `Complete Sale · ৳${money(grandTotal)}`}</button></div>
       </aside>
     </div>
   </div></AdminLayout>

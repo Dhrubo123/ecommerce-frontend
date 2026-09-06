@@ -28,7 +28,7 @@ export default function CategoryForm() {
   const [slugEdited, setSlugEdited] = useState(false)
 
   useEffect(() => {
-    if (!isEdit) return
+    if (!isEdit) { setForm(initial); setSlugEdited(false); setErrors({}); return }
     getCategory(id)
       .then((category) => category && setForm({
         ...initial,

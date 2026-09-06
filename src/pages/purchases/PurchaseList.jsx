@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { deletePurchase, getPurchases } from '../../services/purchaseService'
+import { getSuppliers } from '../../services/supplierService'
+import { getWarehouses } from '../../services/warehouseService'
 import '../brands/brands.css'
 
 export default function PurchaseList() {
@@ -10,6 +12,8 @@ export default function PurchaseList() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState({ warehouseId: '', supplierId: '', from: '', to: '' })
+  const [options, setOptions] = useState({ warehouses: [], suppliers: [] })
 
   const loadPurchases = async () => {
     try {
@@ -20,7 +24,8 @@ export default function PurchaseList() {
     }
   }
 
-  useEffect(() => { loadPurchases() }, [search])
+  useEffect(() => { loadPurchases(); Promise.all([getWarehouses(), getSuppliers()]).then(([warehouses, suppliers]) => setOptions({ warehouses, suppliers })).catch(() => {}) }, [search])
+  const visibleItems = useMemo(() => items.filter((purchase) => { const date = String(purchase.purchaseDate ?? purchase.date ?? '').slice(0, 10); return (!filters.warehouseId || String(purchase.warehouseId ?? purchase.warehouse?.id) === filters.warehouseId) && (!filters.supplierId || String(purchase.supplierId ?? purchase.supplier?.id) === filters.supplierId) && (!filters.from || date >= filters.from) && (!filters.to || date <= filters.to) }), [items, filters])
 
   const removePurchase = async (purchase) => {
     if (!window.confirm(`Delete purchase ${purchase.invoiceNumber || `#${purchase.id}`}? This cannot be undone.`)) return
@@ -40,12 +45,12 @@ export default function PurchaseList() {
         <Link className="brand-primary" to="/purchases/create"><Plus size={17} />Add Purchase</Link>
       </div>
       <section className="brand-card">
-        <div className="brand-toolbar"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search invoice number" /></label></div>
+        <div className="order-filters"><label><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search invoice number" /></label><label>Warehouse<select value={filters.warehouseId} onChange={(event) => setFilters((current) => ({ ...current, warehouseId: event.target.value }))}><option value="">All warehouses</option>{options.warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}</select></label><label>Supplier<select value={filters.supplierId} onChange={(event) => setFilters((current) => ({ ...current, supplierId: event.target.value }))}><option value="">All suppliers</option>{options.suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label><label>From date<input type="date" value={filters.from} onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))} /></label><label>To date<input type="date" min={filters.from} value={filters.to} onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))} /></label></div>
         {error && <div className="brand-error">{error}</div>}
         {notice && <div className="brand-success">{notice}</div>}
         <div className="brand-table"><table>
           <thead><tr><th>Invoice</th><th>Supplier</th><th>Warehouse</th><th>Purchase Date</th><th>Total</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
-          <tbody>{items.length ? items.map((purchase) => {
+          <tbody>{visibleItems.length ? visibleItems.map((purchase) => {
             const total = Number(purchase.totalAmount ?? purchase.total ?? 0)
             const paid = Number(purchase.paidAmount ?? 0)
             return <tr key={purchase.id}>

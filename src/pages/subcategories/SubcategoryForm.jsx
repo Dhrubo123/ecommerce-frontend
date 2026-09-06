@@ -36,7 +36,7 @@ export default function SubcategoryForm() {
   }, [])
 
   useEffect(() => {
-    if (!isEdit) return
+    if (!isEdit) { setForm(initial); setSlugEdited(false); setErrors({}); setLoading(false); return }
     getSubcategory(id)
       .then((item) => setForm({
         ...initial,

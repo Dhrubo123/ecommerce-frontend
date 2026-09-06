@@ -33,6 +33,7 @@ import StockAdjustmentList from './pages/warehouses/StockAdjustmentList'
 import PosSaleForm from './pages/pos/PosSaleForm'
 import PosSaleList from './pages/pos/PosSaleList'
 import PosDraftList from './pages/pos/PosDraftList'
+import PosSaleInvoice from './pages/pos/PosSaleInvoice'
 import EmployeeList from './pages/employees/EmployeeList'
 import EmployeeForm from './pages/employees/EmployeeForm'
 import StockReportList from './pages/warehouses/StockReportList'
@@ -127,6 +128,7 @@ function App() {
         <Route path="/stock-adjustments/create" element={<StockAdjustmentForm />} />
         <Route path="/stock-adjustments" element={<StockAdjustmentList />} />
         <Route path="/pos-sales/create" element={<PosSaleForm />} />
+        <Route path="/pos-sales/:id/invoice" element={<PosSaleInvoice />} />
         <Route path="/pos-sales" element={<PosSaleList />} />
         <Route path="/pos-sales/drafts" element={<PosDraftList />} />
         <Route path="/employees" element={<EmployeeList />} />

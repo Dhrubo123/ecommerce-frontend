@@ -24,7 +24,7 @@ const menuSections = [
     { label: 'Product Attributes', icon: SlidersHorizontal, children: ['Brands', 'Colors', 'Sizes', 'Units'] },
   ] },
   { label: 'Inventory & Purchase', items: [
-    { label: 'Inventory Stock', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Invoices', 'Purchase Summary'] },
+    { label: 'Inventory Stock', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Summary'] },
     { label: 'Purchase Returns', icon: Undo2 }, { label: 'Suppliers', icon: Factory }, { label: 'Warehouses', icon: Boxes, children: ['All Warehouses', 'Add Warehouse', 'Warehouse Requisition List', 'Warehouse Requisitions', 'Warehouse Transfer List', 'New Warehouse Transfer'] },
   ] },
   { label: 'Accounts', items: [
