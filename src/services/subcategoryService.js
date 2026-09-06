@@ -19,10 +19,12 @@ const toSubcategoryUi = (subcategory) => {
   const categoryIds = normalizeIds(
     subcategory.categoryIds ?? subcategory.category_ids ?? subcategory.categories ?? subcategory.categoryId ?? subcategory.category_id ?? subcategory.category?.id,
   )
+  const isActive = asBoolean(subcategory.isActive ?? subcategory.is_active ?? (subcategory.status === 'active'))
   return {
   ...subcategory,
   image: subcategory.image ?? '',
-  status: (subcategory.isActive ?? (subcategory.status === 'active')) ? 'active' : 'inactive',
+  status: isActive ? 'active' : 'inactive',
+  isActive,
   categoryId: categoryIds[0] ?? '',
   categoryIds,
   categoryName: subcategory.categoryName ?? subcategory.category_name ?? subcategory.category?.name ?? subcategory.categories?.[0]?.name ?? '',
@@ -45,20 +47,12 @@ const toSubcategoryPayload = (data) => {
   payload.append('slug', data.slug.trim())
   payload.append('description', data.description?.trim() ?? '')
   // The API receives multipart fields as text and expects "true" or "false".
-  const isActive = data.isActive ?? data.status === 'active'
+  const isActive = data.status ? data.status === 'active' : asBoolean(data.isActive)
   payload.append('isActive', isActive ? 'true' : 'false')
   if (data.image instanceof File) payload.append('image', data.image)
 
   return payload
 }
-
-const toSubcategoryUpdatePayload = (data) => ({
-  categoryIds: (data.categoryIds?.length ? data.categoryIds : [data.categoryId]).map(Number),
-  name: data.name.trim(),
-  slug: data.slug.trim(),
-  description: data.description?.trim() ?? '',
-  isActive: asBoolean(data.isActive, data.status === 'active'),
-})
 
 export async function getSubcategories(params = {}) {
   const response = await api.get('/admin/subcategories', { params })
@@ -78,7 +72,7 @@ export async function createSubcategory(data) {
 }
 
 export async function updateSubcategory(id, data) {
-  const response = await api.patch(`/admin/subcategories/${id}`, toSubcategoryUpdatePayload(data))
+  const response = await api.patch(`/admin/subcategories/${id}`, toSubcategoryPayload(data))
   return toSubcategoryUi(unwrap(response))
 }
 

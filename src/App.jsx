@@ -22,6 +22,7 @@ import WarehouseList from './pages/warehouses/WarehouseList'
 import WarehouseForm from './pages/warehouses/WarehouseForm'
 import PurchaseForm from './pages/purchases/PurchaseForm'
 import PurchaseList from './pages/purchases/PurchaseList'
+import PurchaseDetail from './pages/purchases/PurchaseDetail'
 import PurchaseReturnForm from './pages/purchases/PurchaseReturnForm'
 import CustomerList from './pages/customers/CustomerList'
 import CustomerForm from './pages/customers/CustomerForm'
@@ -35,6 +36,7 @@ import PosDraftList from './pages/pos/PosDraftList'
 import EmployeeList from './pages/employees/EmployeeList'
 import EmployeeForm from './pages/employees/EmployeeForm'
 import StockReportList from './pages/warehouses/StockReportList'
+import ReportsPage from './pages/reports/ReportsPage'
 import WarehouseTransferForm from './pages/warehouses/WarehouseTransferForm'
 import WarehouseTransferList from './pages/warehouses/WarehouseTransferList'
 import EcommerceOrderList from './pages/orders/EcommerceOrderList'
@@ -55,6 +57,7 @@ import AdCampaignForm from './pages/ad-campaigns/AdCampaignForm'
 import RoleList from './pages/roles/RoleList'
 import RoleForm from './pages/roles/RoleForm'
 import ChartOfAccounts from './pages/accounts/ChartOfAccounts'
+import AccountsModule from './pages/accounts/AccountsModule'
 import BankList from './pages/accounts/BankList'
 import BankForm from './pages/accounts/BankForm'
 import SupplierPaymentList from './pages/accounts/SupplierPaymentList'
@@ -112,6 +115,7 @@ function App() {
         <Route path="/warehouses/:id/edit" element={<WarehouseForm />} />
         <Route path="/purchases/create" element={<PurchaseForm />} />
         <Route path="/purchases/:id/edit" element={<PurchaseForm />} />
+        <Route path="/purchases/:id" element={<PurchaseDetail />} />
         <Route path="/purchases" element={<PurchaseList />} />
         <Route path="/purchase-returns/create" element={<PurchaseReturnForm />} />
         <Route path="/customers" element={<CustomerList />} />
@@ -128,6 +132,7 @@ function App() {
         <Route path="/employees/create" element={<EmployeeForm />} />
         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
         <Route path="/stock-reports" element={<StockReportList />} />
+        {['stock', 'sales', 'purchases', 'supplier-ledger', 'customer-ledger'].map((report) => <Route key={report} path={`/reports/${report}`} element={<ReportsPage report={report} />} />)}
         <Route path="/warehouse-transfers" element={<WarehouseTransferList />} />
         <Route path="/warehouse-transfers/create" element={<WarehouseTransferForm />} />
         <Route path="/orders" element={<EcommerceOrderList />} />
@@ -158,12 +163,13 @@ function App() {
         <Route path="/banks" element={<BankList />} />
         <Route path="/banks/create" element={<BankForm />} />
         <Route path="/banks/:id/edit" element={<BankForm />} />
-        <Route path="/supplier-payments" element={<SupplierPaymentList />} />
-        <Route path="/supplier-payments/create" element={<SupplierPaymentForm />} />
-        <Route path="/customer-payments/create" element={<CustomerPaymentForm />} />
-        <Route path="/credit-vouchers/create" element={<CreditVoucherForm />} />
-        <Route path="/debit-vouchers/create" element={<DebitVoucherForm />} />
-        <Route path="/contra-vouchers/create" element={<ContraVoucherForm />} />
+        {['sub-accounts', 'predefined-accounts', 'financial-years', 'opening-balances', 'payment-methods', 'bank-reconciliations', 'supplier-payments', 'credit-vouchers'].map((module) => <Route key={module} path={`/${module}`} element={<AccountsModule key={module} module={module} />} />)}
+        <Route path="/payment-methods/create" element={<AccountsModule key="add-payment-method" module="payment-methods" create />} />
+        <Route path="/supplier-payments/create" element={<AccountsModule key="supplier-payment" module="supplier-payments" />} />
+        <Route path="/customer-payments/create" element={<AccountsModule key="customer-payment" module="customer-payments" />} />
+        <Route path="/credit-vouchers/create" element={<Navigate to="/credit-vouchers" replace />} />
+        <Route path="/debit-vouchers/create" element={<AccountsModule key="debit" module="debit-vouchers" />} />
+        <Route path="/contra-vouchers/create" element={<AccountsModule key="contra" module="contra-vouchers" />} />
         <Route path="/journal-vouchers/create" element={<JournalVoucherForm />} />
         <Route path="/cash-adjustments/create" element={<CashAdjustmentForm />} />
         <Route path="/themes" element={<ThemeList />} />

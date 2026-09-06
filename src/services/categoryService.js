@@ -2,15 +2,17 @@ import api from './api'
 
 const unwrap = (response) => response.data?.data ?? response.data
 const asBoolean = (value, fallback = true) => value === undefined || value === null ? fallback : value === true || value === 'true' || value === 1 || value === '1'
-const toUi = (category) => ({
+const toUi = (category) => {
+  const isActive = asBoolean(category.isActive ?? category.is_active ?? (category.status === 'active'))
+  return {
   ...category,
   image: category.image ?? category.imageUrl ?? '',
-  status: (category.isActive ?? category.is_active ?? category.status === 'active') ? 'active' : 'inactive',
-  isActive: Boolean(category.isActive ?? category.is_active ?? category.status === 'active'),
+  status: isActive ? 'active' : 'inactive',
+  isActive,
   description: category.description ?? '',
   sortOrder: category.sortOrder ?? category.order ?? 0,
   productCount: category.productCount ?? 0,
-})
+}}
 const asList = (data) => (Array.isArray(data) ? data : (data.categories ?? data.items ?? [])).map(toUi)
 const toPayload = (category) => {
   const payload = new FormData()

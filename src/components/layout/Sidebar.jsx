@@ -24,11 +24,11 @@ const menuSections = [
     { label: 'Product Attributes', icon: SlidersHorizontal, children: ['Brands', 'Colors', 'Sizes', 'Units'] },
   ] },
   { label: 'Inventory & Purchase', items: [
-    { label: 'Stock Report', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Invoices', 'Purchase Summary'] },
+    { label: 'Inventory Stock', icon: Boxes, badge: 7 }, { label: 'Stock Adjustment', icon: SlidersHorizontal, children: ['Stock Adjustment List', 'Add Stock Adjustment'] }, { label: 'Purchases', icon: ClipboardList, children: ['Purchase List', 'Add New Purchase', 'Purchase Invoices', 'Purchase Summary'] },
     { label: 'Purchase Returns', icon: Undo2 }, { label: 'Suppliers', icon: Factory }, { label: 'Warehouses', icon: Boxes, children: ['All Warehouses', 'Add Warehouse', 'Warehouse Requisition List', 'Warehouse Requisitions', 'Warehouse Transfer List', 'New Warehouse Transfer'] },
   ] },
   { label: 'Accounts', items: [
-    { label: 'Accounts', icon: Landmark, children: ['Chart of Account', 'Banks', 'Sub Account List', 'Predefined Accounts', 'Financial Year', 'Opening Balance', 'Debit Voucher', 'Credit Voucher', 'Contra Voucher', 'Journal Voucher', 'Bank Reconciliation', 'Add Payment Method', 'Payment Method List', 'Supplier Payment', 'Customer Receive', 'Service Payment', 'Cash Adjustment', 'Voucher Approval'] },
+    { label: 'Accounts', icon: Landmark, children: ['Chart of Account', 'Banks', 'Sub Account List', 'Predefined Accounts', 'Financial Year', 'Opening Balance', 'Debit Voucher', 'Credit Voucher', 'Contra Voucher', 'Journal Voucher', 'Bank Reconciliation', 'Add Payment Method', 'Payment Method List', 'Supplier Payment', 'Customer Receive', 'Cash Adjustment'] },
   ] },
   { label: 'Marketplace', items: [
     { label: 'Shops / Vendors', icon: Store, children: ['All Shops', 'Add Shop', 'Shop Approval'] }, { label: 'Commission', icon: BadgePercent },
@@ -42,8 +42,8 @@ const menuSections = [
     { label: 'Customers', icon: Users }, { label: 'Employees', icon: UserCog }, { label: 'Drivers', icon: Car }, { label: 'Support Tickets', icon: Headphones }, { label: 'Contact Us', icon: Mail },
   ] },
   { label: 'Reports', items: [
-    { label: 'Analytics', icon: BarChart3 }, { label: 'Sales Report', icon: TrendingUp }, { label: 'Order Report', icon: Receipt }, { label: 'Profit Report', icon: BadgeDollarSign },
-    { label: 'Stock Report', icon: Boxes }, { label: 'Purchase Report', icon: ClipboardList }, { label: 'Refund Report', icon: RotateCcw }, { label: 'Commission Report', icon: BadgePercent },
+    { label: 'Sales Report', icon: TrendingUp }, { label: 'Stock Report', icon: Boxes }, { label: 'Purchase Report', icon: ClipboardList },
+    { label: 'Supplier Ledger', icon: Landmark }, { label: 'Customer Ledger', icon: Users },
   ] },
   { label: 'System Settings', items: [
     { label: 'Roles & Permissions', icon: ShieldCheck }, { label: 'Languages', icon: Languages }, { label: 'Address Management', icon: MapPin },
@@ -59,7 +59,14 @@ routes['Chart of Account'] = '/chart-of-accounts'
 routes.Banks = '/banks'
 routes['Supplier Payment'] = '/supplier-payments/create'
 routes['Customer Receive'] = '/customer-payments/create'
-routes['Credit Voucher'] = '/credit-vouchers/create'
+routes['Credit Voucher'] = '/credit-vouchers'
+routes['Sub Account List'] = '/sub-accounts'
+routes['Predefined Accounts'] = '/predefined-accounts'
+routes['Financial Year'] = '/financial-years'
+routes['Opening Balance'] = '/opening-balances'
+routes['Bank Reconciliation'] = '/bank-reconciliations'
+routes['Add Payment Method'] = '/payment-methods/create'
+routes['Payment Method List'] = '/payment-methods'
 routes['Debit Voucher'] = '/debit-vouchers/create'
 routes['Contra Voucher'] = '/contra-vouchers/create'
 routes['Journal Voucher'] = '/journal-vouchers/create'
@@ -72,6 +79,12 @@ routes['Footer Settings'] = '/cms-footer'
 routes['Home Page Sections'] = '/cms-sections'
 routes['CMS Menus'] = '/cms-menus'
 routes['Add Menu Item'] = '/cms-menus/create'
+routes['Sales Report'] = '/reports/sales'
+routes['Purchase Report'] = '/reports/purchases'
+routes['Supplier Ledger'] = '/reports/supplier-ledger'
+routes['Customer Ledger'] = '/reports/customer-ledger'
+routes['Inventory Stock'] = '/stock-reports'
+routes['Stock Report'] = '/reports/stock'
 
 function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
   const location = useLocation()
@@ -99,8 +112,9 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
             <p className="section-label">{section.label}</p>
             <div className="nav-items">{section.items.map((item) => {
               const Icon = item.icon
-              const isOpenMenu = openMenus[item.label]
-              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Promotions' ? location.pathname.startsWith('/flash-sales') || location.pathname.startsWith('/banners') || location.pathname.startsWith('/ad-campaigns') || location.pathname.startsWith('/promo-codes') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : item.label === 'Accounts' ? location.pathname.startsWith('/chart-of-accounts') || location.pathname.startsWith('/banks') || location.pathname.startsWith('/supplier-payments') || location.pathname.startsWith('/customer-payments') || location.pathname.startsWith('/debit-vouchers') || location.pathname.startsWith('/credit-vouchers') || location.pathname.startsWith('/contra-vouchers') || location.pathname.startsWith('/journal-vouchers') || location.pathname.startsWith('/cash-adjustments') : item.label === 'Themes' ? location.pathname.startsWith('/themes') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
+              const activeAccountRoute = item.label === 'Accounts' && item.children.some((child) => routes[getItemLabel(child)] && location.pathname === routes[getItemLabel(child)])
+              const isOpenMenu = openMenus[item.label] ?? activeAccountRoute
+              const isActive = item.label === 'Categories' ? location.pathname.startsWith('/categories') || location.pathname.startsWith('/subcategories') : item.label === 'Orders' ? location.pathname.startsWith('/orders') : item.label === 'Refunds' ? location.pathname.startsWith('/sales-returns') : item.label === 'Blog' ? location.pathname.startsWith('/blogs') : item.label === 'Promotions' ? location.pathname.startsWith('/flash-sales') || location.pathname.startsWith('/banners') || location.pathname.startsWith('/ad-campaigns') || location.pathname.startsWith('/promo-codes') : item.label === 'Products' ? location.pathname.startsWith('/products') : item.label === 'Product Attributes' ? location.pathname.startsWith('/brands') || location.pathname.startsWith('/colors') || location.pathname.startsWith('/sizes') || location.pathname.startsWith('/units') : item.label === 'Warehouses' ? location.pathname.startsWith('/warehouses') || location.pathname.startsWith('/warehouse-requisitions') || location.pathname.startsWith('/warehouse-transfers') : item.label === 'Accounts' ? activeAccountRoute || location.pathname.startsWith('/chart-of-accounts') || location.pathname.startsWith('/banks') || location.pathname.startsWith('/supplier-payments') || location.pathname.startsWith('/customer-payments') || location.pathname.startsWith('/debit-vouchers') || location.pathname.startsWith('/credit-vouchers') || location.pathname.startsWith('/contra-vouchers') || location.pathname.startsWith('/journal-vouchers') || location.pathname.startsWith('/cash-adjustments') : item.label === 'Themes' ? location.pathname.startsWith('/themes') : (routes[item.label] ? location.pathname === routes[item.label] : activeItem === item.label)
               return <div className="nav-item-group" key={item.label}>
                 {item.children ? (
                   <button className={`nav-item ${isActive ? 'is-active' : ''}`} type="button" title={isCollapsed ? item.label : undefined} aria-expanded={isOpenMenu} onClick={() => toggleMenu(item.label)}>
