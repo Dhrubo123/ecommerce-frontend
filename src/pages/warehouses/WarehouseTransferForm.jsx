@@ -21,7 +21,7 @@ export default function WarehouseTransferForm() {
     Promise.all([getWarehouses(), getProducts(), getWarehouseRequisitions()]).then(([warehouses, products, requisitions]) => setOptions({ warehouses, products, requisitions })).catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load transfer options.'))
   }, [])
 
-  const updateItem = (index, key, value) => setForm((current) => ({ ...current, items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item) }))
+  const updateItem = (index, key, value) => setForm((current) => { if (key === 'productId' && current.items.some((item, itemIndex) => itemIndex !== index && String(item.productId) === String(value))) { setError('This product is already in the transfer. Change its quantity instead.'); return current } return { ...current, items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item) } })
   const removeItem = (index) => setForm((current) => ({ ...current, items: current.items.length === 1 ? current.items : current.items.filter((_, itemIndex) => itemIndex !== index) }))
 
   const submit = async (event) => {
