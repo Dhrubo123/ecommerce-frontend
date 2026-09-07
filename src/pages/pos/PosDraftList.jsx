@@ -14,7 +14,12 @@ export default function PosDraftList() {
   const [loading, setLoading] = useState(true)
   const [options, setOptions] = useState({ warehouses: [], customers: [] })
   const [filters, setFilters] = useState({ search: '', warehouseId: '', customerId: '', from: '', to: '' })
-  const load = () => { setLoading(true); getPosDrafts().then((data) => { setDrafts(data); setError('') }).catch((err) => setError(err.response?.data?.message || 'Unable to load POS drafts.')).finally(() => setLoading(false)) }
+  const load = () => { setLoading(true); getPosDrafts().then((data) => {
+    // Some API responses include completed records alongside drafts. Only
+    // pending/draft records belong in this screen.
+    setDrafts(data.filter((draft) => !['completed', 'confirmed', 'paid', 'cancelled'].includes(String(draft.status || '').toLowerCase())))
+    setError('')
+  }).catch((err) => setError(err.response?.data?.message || 'Unable to load POS drafts.')).finally(() => setLoading(false)) }
   useEffect(() => { load(); Promise.all([getWarehouses(), getCustomers()]).then(([warehouses, customers]) => setOptions({ warehouses, customers })).catch(() => {}) }, [])
   const remove = async (id) => { if (!window.confirm('Delete this POS draft?')) return; try { await deletePosDraft(id); load() } catch (err) { setError(err.response?.data?.message || 'Unable to delete POS draft.') } }
   const customerName = (customer) => [customer?.firstName, customer?.lastName].filter(Boolean).join(' ') || customer?.name || ''

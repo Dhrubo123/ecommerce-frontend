@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Eye, FileText, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { deletePurchase, getPurchases } from '../../services/purchaseService'
 import { getSuppliers } from '../../services/supplierService'
@@ -58,7 +58,7 @@ export default function PurchaseList() {
               <td>{purchase.supplier?.name ?? purchase.supplierName ?? '-'}</td>
               <td>{purchase.warehouse?.name ?? purchase.warehouseName ?? '-'}</td>
               <td>{purchase.purchaseDate || '-'}</td><td>{total}</td><td>{paid}</td><td>{purchase.dueAmount ?? total - paid}</td>
-              <td><div className="brand-actions"><Link aria-label="View purchase details and invoice" title="View purchase details and invoice" to={`/purchases/${purchase.id}`}><Eye size={15} /></Link><Link aria-label="Edit purchase" title="Edit purchase" to={`/purchases/${purchase.id}/edit`}><Pencil size={15} /></Link><button type="button" aria-label="Delete purchase" title="Delete purchase" onClick={() => removePurchase(purchase)}><Trash2 size={15} /></button></div></td>
+              <td><div className="brand-actions"><Link aria-label="View purchase details" title="View purchase details" to={`/purchases/${purchase.id}`}><Eye size={15} /></Link><Link aria-label="View purchase invoice" title="View purchase invoice" to={`/purchases/${purchase.id}`}><FileText size={15} /></Link><Link aria-label="Edit purchase" title="Edit purchase" to={`/purchases/${purchase.id}/edit`}><Pencil size={15} /></Link><button type="button" aria-label="Delete purchase" title="Delete purchase" onClick={() => removePurchase(purchase)}><Trash2 size={15} /></button></div></td>
             </tr>
           }) : <tr><td colSpan="8" className="brand-empty">No purchases found.</td></tr>}</tbody>
         </table></div>

@@ -13,8 +13,24 @@ const findAccessToken = (value, depth = 0) => {
   return Object.values(value).map((item) => findAccessToken(item, depth + 1)).find(Boolean) ?? null
 }
 
+const storedAccessToken = () => {
+  for (const storage of [localStorage, sessionStorage]) {
+    for (const key of ['adminAccessToken', 'accessToken', 'access_token', 'token']) {
+      const value = storage.getItem(key)
+      if (!value) continue
+      if (value.startsWith('{')) {
+        try {
+          const token = findAccessToken(JSON.parse(value))
+          if (token) return token
+        } catch { /* Ignore an invalid legacy storage value. */ }
+      } else return value
+    }
+  }
+  return null
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('adminAccessToken')
+  const token = storedAccessToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
