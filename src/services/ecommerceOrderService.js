@@ -13,7 +13,11 @@ export const getEcommerceOrders = async (params = {}) => {
 
 export const createEcommerceOrder = async (data) => unwrap(await api.post('/admin/orders', data))
 
-export const getEcommerceOrder = async (id) => unwrap(await api.get(`/admin/orders/${id}`))
+export const getEcommerceOrder = async (id) => {
+  const data = unwrap(await api.get(`/admin/orders/${id}`))
+  // The order-details endpoint may wrap the actual record in `order`.
+  return data?.order ?? data?.item ?? data
+}
 export const updateOrderStatus = async (id, status) => unwrap(await api.patch(`/admin/orders/${id}/status`, { status }))
 export const updateOrderPaymentStatus = async (id, paymentStatus) => unwrap(await api.patch(`/admin/orders/${id}/payment-status`, { paymentStatus }))
 // The current backend validation requires a root `warehouseId` for confirmation.

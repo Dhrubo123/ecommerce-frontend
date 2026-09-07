@@ -12,6 +12,5 @@ export const createCustomerPayment = async (payment) => unwrap(await api.post('/
   remarks: payment.remarks,
   amount: Number(payment.amount),
   payment_method_id: Number(payment.payment_method_id),
-  account_id: Number(payment.account_id),
   cheque_number: payment.cheque_number || undefined,
 }))

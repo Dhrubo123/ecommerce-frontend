@@ -48,7 +48,7 @@ export default function PosSaleForm() {
   const [loadingWarehouseStock, setLoadingWarehouseStock] = useState(false)
   const [productPage, setProductPage] = useState(1)
   const [showCustomerModal, setShowCustomerModal] = useState(false)
-  const [newCustomer, setNewCustomer] = useState({ firstName: '', lastName: '', phone: '', email: '' })
+  const [newCustomer, setNewCustomer] = useState({ firstName: '', lastName: '', phone: '', email: '', password: '', dateOfBirth: '' })
   const [savingCustomer, setSavingCustomer] = useState(false)
   const [resumedDraftId, setResumedDraftId] = useState(null)
 
@@ -144,13 +144,13 @@ export default function PosSaleForm() {
 
   const saveCustomer = async (event) => {
     event.preventDefault()
-    if (!newCustomer.firstName.trim() || !newCustomer.phone.trim()) return setError('Customer first name and phone are required.')
+    if (!newCustomer.firstName.trim() || !newCustomer.lastName.trim() || !newCustomer.phone.trim() || !newCustomer.email.trim() || !newCustomer.password || !newCustomer.dateOfBirth) return setError('Complete all required customer fields before creating the customer.')
     setSavingCustomer(true); setError('')
     try {
-      const customer = await createCustomer({ ...newCustomer, gender: 'other', dateOfBirth: '', isActive: true })
+      const customer = await createCustomer({ ...newCustomer, gender: 'other', isActive: true })
       setData((current) => ({ ...current, customers: [...current.customers, customer] }))
       setForm((current) => ({ ...current, customerId: String(customer.id) }))
-      setNewCustomer({ firstName: '', lastName: '', phone: '', email: '' })
+      setNewCustomer({ firstName: '', lastName: '', phone: '', email: '', password: '', dateOfBirth: '' })
       setShowCustomerModal(false)
     } catch (requestError) { setError(requestError.response?.data?.message || 'Unable to create customer.') }
     finally { setSavingCustomer(false) }
@@ -240,7 +240,7 @@ export default function PosSaleForm() {
 
   return <AdminLayout title="Point of Sale"><div className="pos-page">
     {error && <div className="pos-alert">{error}</div>}
-    {showCustomerModal && <div className="pos-modal-backdrop" role="dialog" aria-modal="true" aria-label="Add customer"><form className="pos-customer-modal" onSubmit={saveCustomer}><button className="pos-modal-close" type="button" onClick={() => setShowCustomerModal(false)}><X size={18} /></button><h3>Add customer</h3><p>Create a customer and select them for this sale.</p><div><label>First name *<input value={newCustomer.firstName} onChange={(event) => setNewCustomer((current) => ({ ...current, firstName: event.target.value }))} autoFocus /></label><label>Last name<input value={newCustomer.lastName} onChange={(event) => setNewCustomer((current) => ({ ...current, lastName: event.target.value }))} /></label></div><label>Phone *<input value={newCustomer.phone} onChange={(event) => setNewCustomer((current) => ({ ...current, phone: event.target.value }))} /></label><label>Email<input type="email" value={newCustomer.email} onChange={(event) => setNewCustomer((current) => ({ ...current, email: event.target.value }))} /></label><div className="pos-modal-actions"><button type="button" onClick={() => setShowCustomerModal(false)}>Cancel</button><button className="pos-checkout" disabled={savingCustomer}>{savingCustomer ? 'Creating…' : 'Create Customer'}</button></div></form></div>}
+    {showCustomerModal && <div className="pos-modal-backdrop" role="dialog" aria-modal="true" aria-label="Add customer"><form className="pos-customer-modal" onSubmit={saveCustomer}><button className="pos-modal-close" type="button" onClick={() => setShowCustomerModal(false)}><X size={18} /></button><h3>Add customer</h3><p>Create a customer and select them for this sale.</p><div><label>First name *<input value={newCustomer.firstName} onChange={(event) => setNewCustomer((current) => ({ ...current, firstName: event.target.value }))} autoFocus /></label><label>Last name *<input value={newCustomer.lastName} onChange={(event) => setNewCustomer((current) => ({ ...current, lastName: event.target.value }))} /></label></div><label>Phone *<input value={newCustomer.phone} onChange={(event) => setNewCustomer((current) => ({ ...current, phone: event.target.value }))} /></label><label>Email *<input type="email" value={newCustomer.email} onChange={(event) => setNewCustomer((current) => ({ ...current, email: event.target.value }))} /></label><div><label>Password *<input type="password" value={newCustomer.password} onChange={(event) => setNewCustomer((current) => ({ ...current, password: event.target.value }))} /></label><label>Date of birth *<input type="date" value={newCustomer.dateOfBirth} onChange={(event) => setNewCustomer((current) => ({ ...current, dateOfBirth: event.target.value }))} /></label></div><div className="pos-modal-actions"><button type="button" onClick={() => setShowCustomerModal(false)}>Cancel</button><button className="pos-checkout" disabled={savingCustomer}>{savingCustomer ? 'Creating…' : 'Create Customer'}</button></div></form></div>}
     <div className="pos-workspace">
       <section className="pos-catalog"><div className="pos-section-heading"><div><p>POINT OF SALE</p><h2>Select Products</h2></div><span>{products.length} products</span></div>
         <div className="pos-filters"><select value={filters.brandId} onChange={(event) => setFilters((current) => ({ ...current, brandId: event.target.value }))}><option value="">All brands</option>{data.brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}</select><select value={filters.categoryId} onChange={(event) => setFilters((current) => ({ ...current, categoryId: event.target.value }))}><option value="">All categories</option>{data.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><label><Search size={18} /><input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder="Search product name or SKU" /></label></div>
