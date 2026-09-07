@@ -13,7 +13,7 @@ import './pos.css'
 
 const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || ''
 const getImage = (product) => {
-  const value = product.image?.url || product.image || product.thumbnailImage?.url || product.thumbnailImage || product.thumbnailImages?.[0]?.url || product.thumbnailImages?.[0]
+  const value = product.image?.url || product.image || product.imageUrl || product.productImage?.url || product.productImage || product.thumbnail?.url || product.thumbnail || product.thumbnailImage?.url || product.thumbnailImage || product.thumbnailImages?.[0]?.url || product.thumbnailImages?.[0] || product.images?.[0]?.url || product.images?.[0]
   if (!value || typeof value !== 'string') return ''
   if (/^(https?:|data:|blob:)/i.test(value)) return value
   return `${apiBase}/${value.replace(/^\//, '')}`
@@ -23,7 +23,8 @@ const stockOf = (product) => Number(product.stockQuantity ?? product.stock ?? 0)
 const warehouseStockOf = (report) => Number(report?.availableQuantity ?? report?.availableStock ?? report?.stockQuantity ?? report?.quantity ?? report?.stock ?? 0)
 const money = (value) => Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const posDraftKey = 'ecommerce-admin:pos-sale-draft'
-const getDraft = () => { try { return JSON.parse(sessionStorage.getItem(posDraftKey) || 'null') || {} } catch { return {} } }
+const emptySaleForm = { warehouseId: '', customerId: '', paymentMethod: 'cash', note: '', discount: 0, paidAmount: 0 }
+const emptyProductFilters = { search: '', categoryId: '', brandId: '' }
 const firstOptionId = (product, keys) => { for (const key of keys) { const values = product[key]; const first = Array.isArray(values) ? values[0] : values; const id = Number(first?.id ?? first?.sizeId ?? first?.colorId ?? first); if (Number.isFinite(id) && id > 0) return id } return null }
 const saleDateTime = () => {
   const date = new Date()
@@ -36,9 +37,9 @@ export default function PosSaleForm() {
   const navigate = useNavigate()
   const location = useLocation()
   const [data, setData] = useState({ warehouses: [], customers: [], products: [], categories: [], brands: [] })
-  const [form, setForm] = useState(() => ({ warehouseId: '', customerId: '', paymentMethod: 'cash', note: '', discount: 0, paidAmount: 0, ...getDraft().form }))
-  const [cart, setCart] = useState(() => getDraft().cart || [])
-  const [filters, setFilters] = useState(() => ({ search: '', categoryId: '', brandId: '', ...getDraft().filters }))
+  const [form, setForm] = useState(emptySaleForm)
+  const [cart, setCart] = useState([])
+  const [filters, setFilters] = useState(emptyProductFilters)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -53,7 +54,15 @@ export default function PosSaleForm() {
 
   useEffect(() => {
     const draft = location.state?.draft
-    if (!draft?.id) return
+    if (!draft?.id) {
+      // Entering through New POS Sale must never restore a previous cart.
+      sessionStorage.removeItem(posDraftKey)
+      setForm(emptySaleForm)
+      setCart([])
+      setFilters(emptyProductFilters)
+      setResumedDraftId(null)
+      return
+    }
     const draftItems = draft.items || draft.orderItems || []
     setForm((current) => ({ ...current, warehouseId: String(draft.warehouseId ?? draft.warehouse?.id ?? ''), customerId: String(draft.customerId ?? draft.customer?.id ?? ''), paymentMethod: draft.paymentMethod || 'cash', discount: draft.discount ?? 0, paidAmount: draft.paidAmount ?? 0, note: draft.note || '' }))
     setCart(draftItems.map((item) => ({ productId: Number(item.productId ?? item.product?.id), name: item.product?.name || item.productName || `Product #${item.productId}`, sku: item.product?.sku || item.sku || '', image: getImage(item.product || item), quantity: Number(item.quantity || 1), unitPrice: Number(item.price ?? item.unitPrice ?? 0), discount: Number(item.discount || 0), stock: Number(item.stock ?? item.availableStock ?? 999999), sizeId: item.sizeId ?? null, colorId: item.colorId ?? null })))
@@ -69,6 +78,17 @@ export default function PosSaleForm() {
       setData({ warehouses, customers, products, categories, brands })
     }).catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load POS products and options.')).finally(() => setLoading(false))
   }, [])
+
+  // Draft summaries/items may not include the product image. Once the product
+  // catalogue is available, fill missing cart display data from its source.
+  useEffect(() => {
+    if (!data.products.length) return
+    setCart((current) => current.map((item) => {
+      const product = data.products.find((entry) => String(entry.id) === String(item.productId))
+      if (!product) return item
+      return { ...item, name: item.name?.startsWith('Product #') ? product.name : item.name, sku: item.sku || product.sku || '', image: item.image || getImage(product), stock: item.stock ?? availableStock(product) }
+    }))
+  }, [data.products])
 
   useEffect(() => {
     if (!form.warehouseId || data.products.length === 0) {
