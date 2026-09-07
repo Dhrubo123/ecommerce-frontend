@@ -70,6 +70,7 @@ import DebitVoucherForm from './pages/accounts/DebitVoucherForm'
 import ContraVoucherForm from './pages/accounts/ContraVoucherForm'
 import JournalVoucherForm from './pages/accounts/JournalVoucherForm'
 import CashAdjustmentForm from './pages/accounts/CashAdjustmentForm'
+import VoucherList from './pages/accounts/VoucherList'
 import ThemeList from './pages/themes/ThemeList'
 import ThemeForm from './pages/themes/ThemeForm'
 import CmsPageList from './pages/cms/CmsPageList'
@@ -167,13 +168,18 @@ function App() {
         <Route path="/banks" element={<BankList />} />
         <Route path="/banks/create" element={<BankForm />} />
         <Route path="/banks/:id/edit" element={<BankForm />} />
-        {['sub-accounts', 'predefined-accounts', 'financial-years', 'opening-balances', 'payment-methods', 'bank-reconciliations', 'supplier-payments', 'credit-vouchers'].map((module) => <Route key={module} path={`/${module}`} element={<AccountsModule key={module} module={module} />} />)}
+        {['sub-accounts', 'predefined-accounts', 'financial-years', 'opening-balances', 'payment-methods', 'bank-reconciliations'].map((module) => <Route key={module} path={`/${module}`} element={<AccountsModule key={module} module={module} />} />)}
+        <Route path="/supplier-payments" element={<SupplierPaymentList />} />
         <Route path="/payment-methods/create" element={<AccountsModule key="add-payment-method" module="payment-methods" create />} />
-        <Route path="/supplier-payments/create" element={<AccountsModule key="supplier-payment" module="supplier-payments" />} />
+        <Route path="/supplier-payments/create" element={<SupplierPaymentForm />} />
         <Route path="/customer-payments/create" element={<CustomerPaymentForm />} />
-        <Route path="/credit-vouchers/create" element={<Navigate to="/credit-vouchers" replace />} />
-        <Route path="/debit-vouchers/create" element={<AccountsModule key="debit" module="debit-vouchers" />} />
-        <Route path="/contra-vouchers/create" element={<AccountsModule key="contra" module="contra-vouchers" />} />
+        <Route path="/debit-vouchers" element={<VoucherList type="debit" />} />
+        <Route path="/credit-vouchers" element={<VoucherList type="credit" />} />
+        <Route path="/contra-vouchers" element={<VoucherList type="contra" />} />
+        <Route path="/journal-vouchers" element={<VoucherList type="journal" />} />
+        <Route path="/credit-vouchers/create" element={<CreditVoucherForm />} />
+        <Route path="/debit-vouchers/create" element={<DebitVoucherForm />} />
+        <Route path="/contra-vouchers/create" element={<ContraVoucherForm />} />
         <Route path="/journal-vouchers/create" element={<JournalVoucherForm />} />
         <Route path="/cash-adjustments/create" element={<CashAdjustmentForm />} />
         <Route path="/themes" element={<ThemeList />} />
